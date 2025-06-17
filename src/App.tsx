@@ -36,7 +36,7 @@ function App() {
               <Routes>
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
-              <Route path="/guardian-invite/:token" element={<GuardianInvite />} />
+              <Route path="/guardian/invite/:token" element={<GuardianInvite />} />
               
               {/* Private routes */}
               <Route

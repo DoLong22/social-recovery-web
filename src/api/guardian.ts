@@ -80,6 +80,7 @@ export interface SetupSessionResponse {
     sentAt: string;
     expiresAt: string;
     respondedAt?: string;
+    guardianName?: string; // Added from backend enhancement
   }>;
   completionDetails?: any;
   nextSteps: string[];
@@ -168,35 +169,35 @@ export const guardianApi = {
 
   // Guardians management
   async getGuardians(limit?: number, offset?: number): Promise<any> {
-    return apiClient.get('/api/v1/guardians', { params: { limit, offset } });
+    return apiClient.get('/guardians', { params: { limit, offset } });
   },
 
   async getGuardianById(id: string): Promise<any> {
-    return apiClient.get(`/api/v1/guardians/${id}`);
+    return apiClient.get(`/guardians/${id}`);
   },
 
   async updateGuardian(id: string, data: any): Promise<any> {
-    return apiClient.put(`/api/v1/guardians/${id}`, data);
+    return apiClient.put(`/guardians/${id}`, data);
   },
 
   async deleteGuardian(id: string): Promise<any> {
-    return apiClient.delete(`/api/v1/guardians/${id}`);
+    return apiClient.delete(`/guardians/${id}`);
   },
 
   async checkGuardianHealth(id: string): Promise<any> {
-    return apiClient.get(`/api/v1/guardians/${id}/health`);
+    return apiClient.get(`/guardians/${id}/health`);
   },
 
   async bulkHealthCheck(): Promise<any> {
-    return apiClient.post('/api/v1/guardians/health-check', {});
+    return apiClient.post('/guardians/health-check', {});
   },
 
   // Version management
   async getCurrentVersion(): Promise<any> {
-    return apiClient.get('/api/v1/guardian/version/current/active');
+    return apiClient.get('/guardian/version/current/active');
   },
 
   async getVersionHistory(): Promise<any> {
-    return apiClient.get('/api/v1/guardian/version');
+    return apiClient.get('/guardian/version');
   },
 };

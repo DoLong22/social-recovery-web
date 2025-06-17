@@ -5,6 +5,7 @@ import type { SetupSessionResponse } from '../api/guardian';
 import { useToast } from '../contexts/ToastContext';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { getStatusIcon, getTimeSinceDate, formatGuardianDisplay } from '../utils/guardianHelpers';
 
 export const Sessions: React.FC = () => {
   const queryClient = useQueryClient();
@@ -128,8 +129,22 @@ export const Sessions: React.FC = () => {
                 <div>
                   <p className="text-gray-600">Progress</p>
                   <p className="font-medium">
-                    {session.statistics.acceptedCount}/{session.minimumAcceptances}
+                    {session.statistics.acceptedCount}/{session.minimumAcceptances} required
                   </p>
+                </div>
+              </div>
+
+              {/* Guardian Summary */}
+              <div className="mt-3 text-sm">
+                <p className="text-gray-600 mb-1">Guardians ({session.statistics.totalInvitations}):</p>
+                <div className="flex gap-2 text-xs">
+                  <span className="text-green-600">{session.statistics.acceptedCount} accepted</span>
+                  {session.statistics.pendingCount > 0 && (
+                    <span className="text-yellow-600">{session.statistics.pendingCount} pending</span>
+                  )}
+                  {session.statistics.declinedCount > 0 && (
+                    <span className="text-red-600">{session.statistics.declinedCount} declined</span>
+                  )}
                 </div>
               </div>
 
@@ -202,26 +217,48 @@ export const Sessions: React.FC = () => {
 
               {/* Guardians */}
               <div>
-                <h3 className="font-semibold mb-3">Guardians</h3>
-                <div className="space-y-2">
-                  {selectedSession.invitations.map((inv) => (
-                    <Card key={inv.invitationId} padding="sm">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{inv.contactInfo}</p>
-                          <p className="text-sm text-gray-600">{inv.type}</p>
+                <h3 className="font-semibold mb-3">Guardian Status</h3>
+                <div className="space-y-3">
+                  {selectedSession.invitations.map((inv) => {
+                    const guardianName = (inv as any).guardianName;
+                    const displayName = formatGuardianDisplay(inv.contactInfo, guardianName);
+                    
+                    return (
+                      <Card key={inv.invitationId} className="border-gray-100" padding="sm">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-3">
+                            <div className={`text-2xl ${
+                              inv.status === 'ACCEPTED' ? 'text-green-600' :
+                              inv.status === 'DECLINED' ? 'text-red-600' :
+                              inv.status === 'SENT' ? 'text-blue-600' :
+                              'text-gray-600'
+                            }`}>
+                              {getStatusIcon(inv.status)}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-gray-900 text-sm">
+                                {displayName}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {inv.status === 'SENT' ? (
+                                  <>Invited {getTimeSinceDate(inv.sentAt)}</>
+                                ) : inv.status === 'ACCEPTED' ? (
+                                  <>Accepted {inv.respondedAt ? getTimeSinceDate(inv.respondedAt) : 'recently'}</>
+                                ) : inv.status === 'DECLINED' ? (
+                                  <>Declined {inv.respondedAt ? getTimeSinceDate(inv.respondedAt) : 'recently'}</>
+                                ) : (
+                                  <>Expired</>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          {inv.status === 'SENT' && (
+                            <span className="text-xs text-gray-400">Waiting...</span>
+                          )}
                         </div>
-                        <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                          inv.status === 'ACCEPTED' ? 'bg-green-100 text-green-800' :
-                          inv.status === 'DECLINED' ? 'bg-red-100 text-red-800' :
-                          inv.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {inv.status}
-                        </span>
-                      </div>
-                    </Card>
-                  ))}
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
 

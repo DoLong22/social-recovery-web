@@ -10,18 +10,19 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
   // Query current session
-  const { data: currentSession, isLoading: sessionLoading } = useQuery({
+  const { data: currentSession, isLoading: sessionLoading, error: sessionError } = useQuery({
     queryKey: ['currentSession'],
     queryFn: () => guardianApi.getCurrentSession(),
     retry: false
   });
 
   // Query guardians
-  const { data: guardiansData, isLoading: guardiansLoading } = useQuery({
+  const { data: guardiansData, isLoading: guardiansLoading, error: guardiansError } = useQuery({
     queryKey: ['guardians'],
     queryFn: () => guardianApi.getGuardians(),
     retry: false
   });
+
 
   if (sessionLoading || guardiansLoading) {
     return (
@@ -31,11 +32,32 @@ export const Dashboard: React.FC = () => {
     );
   }
 
+  // Show error if both queries failed
+  if (sessionError && guardiansError) {
+    return (
+      <div className="h-full flex items-center justify-center px-6">
+        <Card className="text-center">
+          <h2 className="text-lg font-semibold text-red-600 mb-2">Connection Error</h2>
+          <p className="text-gray-600 mb-4">
+            Unable to load dashboard data. Please check if the backend is running.
+          </p>
+          <p className="text-sm text-gray-500 mb-4">
+            Session Error: {sessionError?.message}<br/>
+            Guardians Error: {guardiansError?.message}
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   const guardians = guardiansData?.data || [];
   const hasGuardians = guardians.length > 0;
 
-  // Show session status if active
-  if (currentSession) {
+  // Show session status if active (but not completed)
+  if (currentSession && currentSession.status !== 'COMPLETED') {
     return (
       <div className="space-y-6">
         {/* Current Session Status */}
@@ -47,7 +69,7 @@ export const Dashboard: React.FC = () => {
               currentSession.status === 'WAITING_FOR_ALL' ? 'bg-yellow-100 text-yellow-800' :
               'bg-red-100 text-red-800'
             }`}>
-              {currentSession.status.replace('_', ' ')}
+              {currentSession.status.replace(/_/g, ' ')}
             </span>
           </div>
           
@@ -58,13 +80,33 @@ export const Dashboard: React.FC = () => {
             {currentSession.status === 'SOME_DECLINED' && ' Some guardians have declined.'}
           </p>
 
-          <div className="flex gap-3">
-            {currentSession.status === 'WAITING_FOR_ALL' || currentSession.status === 'SOME_DECLINED' ? (
-              <Button onClick={() => navigate('/session-monitoring')}>
+          <div className="space-y-3">
+            {currentSession.status === 'ALL_ACCEPTED' ? (
+              <>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 text-green-800 mb-2">
+                    <span className="text-xl">🎉</span>
+                    <p className="font-medium">Ready to complete setup!</p>
+                  </div>
+                  <p className="text-sm text-green-700">
+                    All guardians have accepted. Complete your setup to secure your wallet.
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => navigate('/session-monitoring')}
+                  fullWidth
+                  size="lg"
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Complete Setup Now →
+                </Button>
+              </>
+            ) : currentSession.status === 'WAITING_FOR_ALL' || currentSession.status === 'SOME_DECLINED' ? (
+              <Button onClick={() => navigate('/session-monitoring')} fullWidth>
                 View Session Status
               </Button>
             ) : (
-              <Button onClick={() => navigate('/guardian-dashboard')}>
+              <Button onClick={() => navigate('/guardian-dashboard')} fullWidth>
                 View Guardian Dashboard
               </Button>
             )}
@@ -75,19 +117,42 @@ export const Dashboard: React.FC = () => {
         <div className="grid grid-cols-2 gap-4">
           <Card>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{guardians.length}</div>
+              <div className="text-2xl font-bold text-blue-600">{currentSession.statistics.totalInvitations}</div>
               <div className="text-sm text-gray-600">Total Guardians</div>
             </div>
           </Card>
           <Card>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
-                {guardians.filter((g: any) => g.status === 'ACTIVE').length}
+                {currentSession.statistics.acceptedCount}
               </div>
-              <div className="text-sm text-gray-600">Active Guardians</div>
+              <div className="text-sm text-gray-600">Accepted</div>
             </div>
           </Card>
         </div>
+
+        {/* Session Details */}
+        <Card>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Session Details</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Minimum Required:</span>
+              <span className="font-medium">{currentSession.minimumAcceptances} guardians</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Can Proceed:</span>
+              <span className={`font-medium ${currentSession.canProceed ? 'text-green-600' : 'text-red-600'}`}>
+                {currentSession.canProceed ? 'Yes' : 'No'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Created:</span>
+              <span className="font-medium">
+                {new Date(currentSession.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+        </Card>
       </div>
     );
   }

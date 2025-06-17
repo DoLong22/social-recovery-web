@@ -36,6 +36,13 @@ export const GuardianDashboard: React.FC = () => {
     refetchInterval: 30000 // Refresh every 30 seconds
   });
 
+  // Query current session to show session guardians if no permanent guardians
+  const { data: currentSession } = useQuery({
+    queryKey: ['currentSession'],
+    queryFn: () => guardianApi.getCurrentSession(),
+    retry: false
+  });
+
   // Query current version
   const { data: versionData } = useQuery({
     queryKey: ['currentVersion'],
@@ -44,6 +51,13 @@ export const GuardianDashboard: React.FC = () => {
 
   const guardians = guardiansData?.data || [];
   const currentVersion = versionData?.data || { version: 'v1.0.0' };
+  
+  // Get guardian count from session if no permanent guardians
+  const sessionGuardians = currentSession?.invitations || [];
+  const activeGuardianCount = guardians.length > 0 ? 
+    guardians.filter((g: GuardianData) => g.status === 'ACTIVE').length : 
+    sessionGuardians.filter((g: any) => g.status === 'ACCEPTED').length;
+  const totalGuardianCount = guardians.length > 0 ? guardians.length : sessionGuardians.length;
 
   // Health check mutation
   const healthCheckMutation = useMutation({
@@ -111,16 +125,24 @@ export const GuardianDashboard: React.FC = () => {
     }
   };
 
-  const activeGuardians = guardians.filter((g: GuardianData) => g.status === 'ACTIVE');
-  const totalGuardians = guardians.length;
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
-      {/* Header */}
+      {/* Header with Navigation */}
       <div className="px-6 pt-safe-top pb-4 bg-white border-b border-gray-100">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Guardian Dashboard
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-gray-900">
+            Guardian Dashboard
+          </h1>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -139,7 +161,7 @@ export const GuardianDashboard: React.FC = () => {
                   <h2 className="text-2xl font-bold">Wallet Protected</h2>
                 </div>
                 <p className="text-blue-100">
-                  {activeGuardians.length} Active Guardians
+                  {activeGuardianCount} Active Guardians
                 </p>
               </div>
               <div className="text-right">
@@ -179,7 +201,7 @@ export const GuardianDashboard: React.FC = () => {
           
           {isLoading ? (
             <GuardianSkeleton />
-          ) : guardians.length === 0 ? (
+          ) : totalGuardianCount === 0 ? (
             <EmptyState
               icon="👥"
               title="No Guardians Yet"
@@ -189,7 +211,8 @@ export const GuardianDashboard: React.FC = () => {
                 onClick: () => navigate('/setup')
               }}
             />
-          ) : (
+          ) : guardians.length > 0 ? (
+            // Show permanent guardians
             <div className="space-y-3">
               {guardians.map((guardian: GuardianData, index: number) => (
                 <motion.div
@@ -213,17 +236,83 @@ export const GuardianDashboard: React.FC = () => {
                 </motion.div>
               ))}
             </div>
+          ) : (
+            // Show session guardians if no permanent guardians
+            <div className="space-y-3">
+              {sessionGuardians.map((guardian, index) => (
+                <motion.div
+                  key={`session-${guardian.invitationId}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${
+                        guardian.type === 'EMAIL' ? 'bg-blue-100' :
+                        guardian.type === 'PHONE' ? 'bg-green-100' : 'bg-purple-100'
+                      }`}>
+                        {guardian.type === 'EMAIL' ? '📧' :
+                         guardian.type === 'PHONE' ? '📱' : '🔐'}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{guardian.guardianName || 'Guardian'}</p>
+                        <p className="text-sm text-gray-500">{guardian.contactInfo}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        guardian.status === 'ACCEPTED' ? 'bg-green-100 text-green-800' :
+                        guardian.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {guardian.status === 'ACCEPTED' ? 'Accepted' :
+                         guardian.status === 'PENDING' ? 'Pending' : guardian.status}
+                      </span>
+                    </div>
+                  </div>
+                  {guardian.status === 'ACCEPTED' && (
+                    <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className="text-sm text-green-700">
+                        ✅ Ready to secure your wallet! Complete setup to activate.
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+              
+              {/* Complete Setup Call-to-Action */}
+              {currentSession?.status === 'ALL_ACCEPTED' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <span className="text-xl">🎉</span>
+                    <p className="font-medium text-blue-900">All guardians accepted!</p>
+                  </div>
+                  <p className="text-sm text-blue-700 mb-3">
+                    Complete your setup to convert these to permanent guardians and secure your wallet.
+                  </p>
+                  <Button 
+                    onClick={() => navigate('/session-monitoring')}
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Complete Setup Now →
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
         {/* Recovery Settings */}
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-8">
           <Card className="bg-gray-50">
             <h3 className="font-semibold text-gray-900 mb-3">Recovery Settings</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-600">Minimum Required</span>
-                <span className="font-medium">2 of {totalGuardians}</span>
+                <span className="font-medium">2 of {totalGuardianCount}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Version</span>
@@ -232,10 +321,10 @@ export const GuardianDashboard: React.FC = () => {
             </div>
             <div className="mt-4 flex space-x-2">
               <Button variant="ghost" size="sm" onClick={() => navigate('/sessions')}>
-                View History
+                📊 View History
               </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate('/recovery')}>
-                Start Recovery
+                🔄 Start Recovery
               </Button>
             </div>
           </Card>
@@ -243,27 +332,6 @@ export const GuardianDashboard: React.FC = () => {
       </div>
       </PullToRefresh>
 
-      {/* Bottom Navigation */}
-      <div className="bg-white border-t border-gray-200 px-6 py-2 pb-safe-bottom">
-        <div className="grid grid-cols-4 gap-1">
-          <button className="flex flex-col items-center py-2 text-gray-400">
-            <span className="text-xl mb-1">⚙️</span>
-            <span className="text-xs">Setup</span>
-          </button>
-          <button className="flex flex-col items-center py-2 text-gray-400">
-            <span className="text-xl mb-1">📊</span>
-            <span className="text-xs">Stats</span>
-          </button>
-          <button className="flex flex-col items-center py-2 text-blue-600">
-            <span className="text-xl mb-1">🏠</span>
-            <span className="text-xs">Home</span>
-          </button>
-          <button className="flex flex-col items-center py-2 text-gray-400">
-            <span className="text-xl mb-1">👤</span>
-            <span className="text-xs">You</span>
-          </button>
-        </div>
-      </div>
 
       {/* Guardian Details Modal */}
       <GuardianDetailsModal
