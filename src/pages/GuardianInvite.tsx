@@ -6,7 +6,6 @@ import type { AcceptInvitationDto, DeclineInvitationDto } from '../api/guardian'
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { generatePublicKey } from '../utils/helpers';
 
 export const GuardianInvite: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -14,7 +13,6 @@ export const GuardianInvite: React.FC = () => {
   const [showDeclineForm, setShowDeclineForm] = useState(false);
   const [acceptData, setAcceptData] = useState({
     guardianName: '',
-    publicKey: generatePublicKey(),
     agreedToTerms: false,
     understandsResponsibility: false
   });
@@ -46,7 +44,6 @@ export const GuardianInvite: React.FC = () => {
   const handleAccept = () => {
     const data: AcceptInvitationDto = {
       guardianName: acceptData.guardianName,
-      publicKey: acceptData.publicKey,
       consent: {
         agreedToTerms: acceptData.agreedToTerms,
         understandsResponsibility: acceptData.understandsResponsibility,

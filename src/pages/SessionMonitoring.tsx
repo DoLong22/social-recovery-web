@@ -7,6 +7,8 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { useEnhancedSuccessAnimation } from '../components/ui/EnhancedSuccessAnimation';
 import { getStatusIcon, getStatusColor, getTimeSinceDate, formatGuardianDisplay } from '../utils/guardianHelpers';
+import { GuardianSetupFlow } from '../utils/guardianSetupFlow';
+import { FrontendSaltService } from '../utils/saltDerivation';
 
 // Pull-to-refresh hook
 const usePullToRefresh = (onRefresh: () => void) => {
@@ -64,25 +66,26 @@ export const SessionMonitoring: React.FC = () => {
   });
 
   // Mutation to complete setup
-  const proceedMutation = useMutation({
-    mutationFn: (sessionId: string) => 
-      guardianApi.proceedWithSetup(sessionId, { confirmProceed: true }),
+  const distributeMutation = useMutation({
+    mutationFn: ({ sessionId, data }: { sessionId: string, data: any }) => 
+      guardianApi.distributeShares(sessionId, data),
     onSuccess: () => {
       // Invalidate and refetch session data
       queryClient.invalidateQueries({ queryKey: ['currentSession'] });
       queryClient.invalidateQueries({ queryKey: ['guardians'] });
       
+      // Clear master password from state
+      setMasterPassword('');
+      
       // Show success and navigate
-      triggerSuccess('Setup completed successfully! Your wallet is now secured.');
+      triggerSuccess('Wallet secured! Your encrypted shares have been distributed to guardians.');
       setTimeout(() => {
         navigate('/guardian-dashboard');
       }, 3000);
     },
     onError: (error) => {
-      console.error('Failed to complete setup:', error);
-      // For now, still navigate to dashboard even if API fails
-      // This is because the backend has a bug but guardians are accepted
-      navigate('/guardian-dashboard');
+      console.error('Failed to distribute shares:', error);
+      setPasswordError('Failed to distribute shares. Please try again.');
     }
   });
 
@@ -94,12 +97,106 @@ export const SessionMonitoring: React.FC = () => {
 
   const pullToRefresh = usePullToRefresh(handleRefresh);
 
-  // Handle completing the setup
-  const handleCompleteSetup = useCallback(() => {
-    if (currentSession?.sessionId) {
-      proceedMutation.mutate(currentSession.sessionId);
+  // State for master password input
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [masterPassword, setMasterPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  // Handle completing the setup with new dual-salt API
+  const handleCompleteSetup = useCallback(async () => {
+    if (!masterPassword) {
+      setShowPasswordPrompt(true);
+      return;
     }
-  }, [currentSession?.sessionId, proceedMutation]);
+
+    if (currentSession?.sessionId) {
+      try {
+        // The GuardianSetupFlow will handle preparing session and getting backend salt
+        
+        // Step 1: Generate recovery secret
+        const recoverySecret = crypto.getRandomValues(new Uint8Array(32))
+          .reduce((acc, val) => acc + val.toString(16).padStart(2, '0'), '');
+        
+        // Step 2: Use GuardianSetupFlow with dual-salt encryption
+        const encryptedSharesRaw = await GuardianSetupFlow.proceedWithSetup({
+          sessionId: currentSession.sessionId,
+          masterPassword,
+          recoverySecret
+        });
+        
+        // Step 3: Format encrypted shares for distribution API
+        const encryptedShares = encryptedSharesRaw.map(share => ({
+          guardianId: share.guardianId,
+          encryptedShare: btoa(share.encryptedShare) // Base64 encode
+        }));
+        
+        // Step 4: Distribute shares to guardians
+        const distributeData = {
+          encryptedShares,
+          encryptionMetadata: {
+            version: 'dual-salt-v1',
+            algorithm: 'AES-256-GCM',
+            keyDerivation: 'PBKDF2-SHA256'
+          }
+        };
+        
+        distributeMutation.mutate({ sessionId: currentSession.sessionId, data: distributeData });
+      } catch (error) {
+        console.error('Failed to prepare setup data:', error);
+        setPasswordError(error instanceof Error ? error.message : 'Setup failed');
+      }
+    }
+  }, [currentSession, masterPassword, distributeMutation]);
+
+  // Handle password submission
+  const handlePasswordSubmit = useCallback(async () => {
+    if (!masterPassword.trim()) {
+      setPasswordError('Master password is required');
+      return;
+    }
+
+    try {
+      // Validate password strength
+      FrontendSaltService.validatePasswordStrength(masterPassword);
+      
+      setPasswordError('');
+      setShowPasswordPrompt(false);
+      
+      // Proceed with setup
+      await handleCompleteSetup();
+    } catch (error) {
+      setPasswordError(error instanceof Error ? error.message : 'Invalid password');
+    }
+  }, [masterPassword, handleCompleteSetup]);
+
+  // Check if setup is truly completed (status = COMPLETED) and redirect
+  React.useEffect(() => {
+    if (currentSession) {
+      // Only redirect when session status is actually COMPLETED (not ALL_ACCEPTED)
+      if (currentSession.status === 'COMPLETED') {
+        triggerSuccess('Setup completed successfully! Your wallet is now secured.');
+        
+        // Navigate to dashboard after animation
+        setTimeout(() => {
+          navigate('/guardian-dashboard');
+        }, 3000);
+      }
+      
+      // Reset trigger when session changes
+      if (currentSession.sessionId !== prevSessionStatusRef.current) {
+        resetTrigger();
+        prevSessionStatusRef.current = currentSession.sessionId;
+      }
+    }
+  }, [currentSession, triggerSuccess, resetTrigger, navigate]);
+
+  // Helper function
+  const formatLastRefresh = () => {
+    const seconds = Math.floor((Date.now() - lastRefreshTime) / 1000);
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  };
 
   if (!currentSession) {
     return (
@@ -114,40 +211,12 @@ export const SessionMonitoring: React.FC = () => {
     );
   }
 
-  // Helper function
-
-  const formatLastRefresh = () => {
-    const seconds = Math.floor((Date.now() - lastRefreshTime) / 1000);
-    if (seconds < 60) return 'Just now';
-    const minutes = Math.floor(seconds / 60);
-    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-  };
-
   const acceptedCount = currentSession.statistics.acceptedCount;
   const declinedCount = currentSession.statistics.declinedCount || 0;
   const totalInvitations = currentSession.statistics.totalInvitations;
   const minimumNeeded = currentSession.minimumAcceptances;
   const totalResponded = acceptedCount + declinedCount;
   const stillWaitingFor = totalInvitations - totalResponded;
-
-  // Check if setup is truly completed (status = COMPLETED) and redirect
-  React.useEffect(() => {
-    // Only redirect when session status is actually COMPLETED (not ALL_ACCEPTED)
-    if (currentSession.status === 'COMPLETED') {
-      triggerSuccess('Setup completed successfully! Your wallet is now secured.');
-      
-      // Navigate to dashboard after animation
-      setTimeout(() => {
-        navigate('/guardian-dashboard');
-      }, 3000);
-    }
-    
-    // Reset trigger when session changes
-    if (currentSession.sessionId !== prevSessionStatusRef.current) {
-      resetTrigger();
-      prevSessionStatusRef.current = currentSession.sessionId;
-    }
-  }, [currentSession.status, currentSession.sessionId, triggerSuccess, resetTrigger, navigate]);
 
   return (
     <div 
@@ -377,14 +446,24 @@ export const SessionMonitoring: React.FC = () => {
                   <span className="text-xl">🎉</span>
                   <p className="font-medium">All guardians responded! Ready to complete setup!</p>
                 </div>
+                <div className="bg-blue-50 rounded-lg p-3 mb-3">
+                  <p className="text-xs text-blue-800">
+                    🔐 <strong>Security:</strong> Your recovery secret will be encrypted with zero-knowledge architecture using your master password
+                  </p>
+                </div>
                 <Button 
                   onClick={handleCompleteSetup}
-                  loading={proceedMutation.isPending}
+                  loading={distributeMutation.isPending}
                   fullWidth
                   className="bg-green-600 hover:bg-green-700"
                 >
-                  {proceedMutation.isPending ? 'Completing Setup...' : 'Complete Setup →'}
+                  {distributeMutation.isPending ? 'Generating Encrypted Shares...' : 'Complete Setup →'}
                 </Button>
+                {distributeMutation.isPending && (
+                  <p className="text-xs text-green-700 mt-2 text-center">
+                    Creating encrypted shares with dual-salt security...
+                  </p>
+                )}
               </Card>
             </motion.div>
           )}
@@ -429,6 +508,93 @@ export const SessionMonitoring: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Master Password Modal */}
+      <AnimatePresence>
+        {showPasswordPrompt && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-2xl p-6 w-full max-w-md"
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Enter Master Password
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Your master password is needed to encrypt recovery shares with zero-knowledge security.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Master Password
+                  </label>
+                  <input
+                    type="password"
+                    value={masterPassword}
+                    onChange={(e) => {
+                      setMasterPassword(e.target.value);
+                      setPasswordError('');
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handlePasswordSubmit();
+                      }
+                    }}
+                    placeholder="Enter your secure master password"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    autoFocus
+                  />
+                  {passwordError && (
+                    <p className="text-red-600 text-xs mt-1">{passwordError}</p>
+                  )}
+                </div>
+
+                <div className="bg-yellow-50 rounded-lg p-3">
+                  <p className="text-xs text-yellow-800">
+                    <strong>Requirements:</strong> 12+ characters with uppercase, lowercase, numbers, and special characters
+                  </p>
+                </div>
+
+                <div className="flex space-x-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setShowPasswordPrompt(false);
+                      setMasterPassword('');
+                      setPasswordError('');
+                    }}
+                    fullWidth
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handlePasswordSubmit}
+                    fullWidth
+                    disabled={!masterPassword.trim()}
+                  >
+                    Continue
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Success Animation */}
       <SuccessComponent />

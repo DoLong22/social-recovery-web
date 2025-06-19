@@ -26,7 +26,14 @@ export const ENDPOINTS = {
     HISTORY: '/guardian/setup-sessions/history',
     STATUS: (id: string) => `/guardian/setup-sessions/${id}/status`,
     PROCEED: (id: string) => `/guardian/setup-sessions/${id}/proceed`,
+    PREPARE: (id: string) => `/guardian/setup-sessions/${id}/prepare`,
+    DISTRIBUTE: (id: string) => `/guardian/setup-sessions/${id}/distribute`,
     HANDLE_DECLINE: (id: string) => `/guardian/setup-sessions/${id}/handle-decline`,
     CANCEL: (id: string) => `/guardian/setup-sessions/${id}/cancel`,
+  },
+  
+  // Recovery
+  RECOVERY: {
+    RETRIEVE_SALT: '/recovery/retrieve-salt',
   },
 } as const;

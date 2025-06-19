@@ -88,7 +88,6 @@ export interface SetupSessionResponse {
 
 export interface AcceptInvitationDto {
   guardianName: string;
-  publicKey: string;
   consent: {
     agreedToTerms: boolean;
     understandsResponsibility: boolean;
@@ -116,11 +115,61 @@ export interface HandleDeclineDto {
   metadata?: Record<string, unknown>;
 }
 
+export interface EncryptedShare {
+  guardianId: string;
+  encryptedShare: string;
+  guardianType: GuardianType;
+}
+
 export interface ProceedSetupDto {
-  confirmProceed: boolean;
+  encryptedShares: EncryptedShare[];
+  versionId: string;
   reason?: string;
-  cancelPending?: boolean;
   metadata?: Record<string, unknown>;
+}
+
+// New dual-salt interfaces
+export interface PrepareSessionDto {
+  deviceInfo: {
+    deviceId: string;
+    platform: string;
+    version: string;
+  };
+}
+
+export interface PrepareSessionResponse {
+  backendSalt: string; // 64 hex characters
+  guardians: Array<{
+    guardianId: string;
+    contactHash: string;
+    type: GuardianType;
+  }>;
+  setupTimestamp: number;
+  sessionId: string;
+}
+
+export interface DistributeSharesDto {
+  encryptedShares: Array<{
+    guardianId: string;
+    encryptedShare: string; // Base64 encoded
+  }>;
+  encryptionMetadata: {
+    version: string;
+    algorithm: string;
+    keyDerivation: string;
+  };
+}
+
+export interface DistributeSharesResponse {
+  sessionId: string;
+  status: SetupSessionStatus;
+  distributionResults: Array<{
+    guardianId: string;
+    status: 'DELIVERED' | 'FAILED';
+    deliveredAt?: string;
+  }>;
+  sharesDistributed: number;
+  completedAt: string;
 }
 
 // API methods
@@ -144,6 +193,15 @@ export const guardianApi = {
 
   async proceedWithSetup(sessionId: string, data: ProceedSetupDto): Promise<any> {
     return apiClient.post(ENDPOINTS.SETUP_SESSION.PROCEED(sessionId), data);
+  },
+
+  // New dual-salt methods
+  async prepareSession(sessionId: string, data: PrepareSessionDto): Promise<PrepareSessionResponse> {
+    return apiClient.post(ENDPOINTS.SETUP_SESSION.PREPARE(sessionId), data);
+  },
+
+  async distributeShares(sessionId: string, data: DistributeSharesDto): Promise<DistributeSharesResponse> {
+    return apiClient.post(ENDPOINTS.SETUP_SESSION.DISTRIBUTE(sessionId), data);
   },
 
   async handleDecline(sessionId: string, data: HandleDeclineDto): Promise<any> {
