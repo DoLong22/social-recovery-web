@@ -113,22 +113,30 @@ export const SessionMonitoring: React.FC = () => {
       try {
         // The GuardianSetupFlow will handle preparing session and getting backend salt
         
-        // Step 1: Generate recovery secret
-        const recoverySecret = crypto.getRandomValues(new Uint8Array(32))
-          .reduce((acc, val) => acc + val.toString(16).padStart(2, '0'), '');
+        // Step 1: Generate recovery secret (unused in current implementation)
+        // const recoverySecret = crypto.getRandomValues(new Uint8Array(32))
+        //   .reduce((acc, val) => acc + val.toString(16).padStart(2, '0'), '');
         
         // Step 2: Use GuardianSetupFlow with dual-salt encryption
         const encryptedSharesRaw = await GuardianSetupFlow.proceedWithSetup({
           sessionId: currentSession.sessionId,
           masterPassword,
-          recoverySecret
         });
         
         // Step 3: Format encrypted shares for distribution API
-        const encryptedShares = encryptedSharesRaw.map(share => ({
-          guardianId: share.guardianId,
-          encryptedShare: btoa(share.encryptedShare) // Base64 encode
-        }));
+        console.log('📤 Preparing shares for distribution...');
+        const encryptedShares = encryptedSharesRaw.map((share, index) => {
+          console.log(`Share ${index} for guardian ${share.guardianId}:`, {
+            inputLength: share.encryptedShare.length,
+            inputSample: share.encryptedShare.substring(0, 50) + '...',
+            isAlreadyBase64: true  // ShareEncryptionService already returns base64
+          });
+          
+          return {
+            guardianId: share.guardianId,
+            encryptedShare: share.encryptedShare  // Already base64 encoded by ShareEncryptionService!
+          };
+        });
         
         // Step 4: Distribute shares to guardians
         const distributeData = {

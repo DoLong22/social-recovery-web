@@ -24,6 +24,7 @@ export class ShareEncryptionService {
   private static readonly ALGORITHM = 'AES-GCM';
   private static readonly KEY_LENGTH = 256;
   private static readonly IV_LENGTH = 12; // 96 bits for GCM
+  // private static readonly TAG_LENGTH = 16; // 128 bits for GCM auth tag (currently unused but kept for future use)
 
   /**
    * Derives encryption key from all security components
@@ -42,11 +43,30 @@ export class ShareEncryptionService {
         params.setupTimestamp.toString()
       ].join(':');
 
+      console.log('ShareEncryption - Key derivation params:', {
+        guardianContactHash: params.guardianContactHash,
+        frontendSalt: params.frontendSalt,
+        backendSalt: params.backendSalt,
+        setupTimestamp: params.setupTimestamp,
+        keyMaterial: keyMaterial,
+        keyMaterialCharCodes: Array.from(keyMaterial).map(c => c.charCodeAt(0)),
+        keyMaterialLength: keyMaterial.length,
+        keyMaterialByteLength: new TextEncoder().encode(keyMaterial).length
+      });
+
       // Hash the combined material to get consistent key
       const hash = await crypto.subtle.digest(
         'SHA-256',
         new TextEncoder().encode(keyMaterial)
       );
+      
+      console.log('🔑 Key derivation result:', {
+        keyMaterialHash: Array.from(new Uint8Array(hash.slice(0, 16))), // First 16 bytes for comparison
+        keyMaterialHashFull: Array.from(new Uint8Array(hash)), // Full hash for debugging
+        keyMaterialLength: keyMaterial.length,
+        hashLength: hash.byteLength,
+        keyMaterialHashHex: Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')
+      });
 
       // Import hash as AES-GCM key
       return crypto.subtle.importKey(
@@ -71,6 +91,13 @@ export class ShareEncryptionService {
    * @returns Promise<string> - Base64-encoded encrypted share (IV + ciphertext)
    */
   static async encryptShare(params: EncryptShareParams): Promise<string> {
+    console.log('🔒 ENCRYPT SHARE - Params:', {
+      share: params.share,
+      guardianContactHash: params.guardianContactHash,
+      frontendSalt: params.frontendSalt,
+      backendSalt: params.backendSalt,
+      setupTimestamp: params.setupTimestamp
+    });
     try {
       // Derive the encryption key from all components
       const key = await this.deriveEncryptionKey(params);
@@ -90,6 +117,16 @@ export class ShareEncryptionService {
       combined.set(iv, 0);
       combined.set(new Uint8Array(encrypted), iv.length);
 
+      console.log('🔒 ENCRYPTION RESULT:', {
+        ivLength: iv.length,
+        encryptedLength: encrypted.byteLength,
+        combinedLength: combined.length,
+        ivSample: Array.from(iv.slice(0, 8)),
+        encryptedSample: Array.from(new Uint8Array(encrypted.slice(0, 8))),
+        encryptedEndSample: Array.from(new Uint8Array(encrypted.slice(-8))),
+        totalExpectedLength: iv.length + encrypted.byteLength
+      });
+
       // Return as base64 for easy transport
       return btoa(String.fromCharCode(...combined));
 
@@ -107,27 +144,70 @@ export class ShareEncryptionService {
    * @returns Promise<string> - Decrypted Shamir share
    */
   static async decryptShare(params: DecryptShareParams): Promise<string> {
+    console.log('🔓 DECRYPT SHARE - Params:', {
+      encryptedShare: params.encryptedShare,
+      guardianContactHash: params.guardianContactHash,
+      frontendSalt: params.frontendSalt,
+      backendSalt: params.backendSalt,
+      setupTimestamp: params.setupTimestamp
+    });
     try {
       // Derive the same encryption key used during setup
       const key = await this.deriveEncryptionKey(params);
 
       // Decode base64 encrypted data
+      console.log('🔍 Decoding Base64 share:', {
+        encryptedShareLength: params.encryptedShare.length,
+        encryptedShareSample: params.encryptedShare.substring(0, 50) + '...'
+      });
+      
       const combined = new Uint8Array(
         atob(params.encryptedShare)
           .split('')
           .map(c => c.charCodeAt(0))
       );
+      
+      console.log('🔍 Decoded data:', {
+        combinedLength: combined.length,
+        firstBytes: Array.from(combined.slice(0, 20)),
+        expectedIVLength: 12
+      });
 
       // Extract IV and ciphertext
       const iv = combined.slice(0, this.IV_LENGTH);
       const ciphertext = combined.slice(this.IV_LENGTH);
+      
+      console.log('🔍 Extracted components:', {
+        ivLength: iv.length,
+        ciphertextLength: ciphertext.length,
+        ivBytes: Array.from(iv),
+        ciphertextSample: Array.from(ciphertext.slice(0, 10))
+      });
 
       // Decrypt using AES-GCM
+      // The ciphertext should include the authentication tag at the end
+      console.log('🔑 About to decrypt with:', {
+        algorithm: this.ALGORITHM,
+        ivLength: iv.length,
+        keyType: key.type,
+        keyAlgorithm: key.algorithm,
+        ciphertextLength: ciphertext.length,
+        ciphertextSample: Array.from(ciphertext.slice(0, 8)),
+        ciphertextEndSample: Array.from(ciphertext.slice(-8))
+      });
+      
       const decrypted = await crypto.subtle.decrypt(
-        { name: this.ALGORITHM, iv },
+        { 
+          name: this.ALGORITHM, 
+          iv
+        },
         key,
         ciphertext
       );
+      
+      console.log('✅ Decryption successful:', {
+        decryptedLength: decrypted.byteLength
+      });
 
       // Convert back to string
       return new TextDecoder().decode(decrypted);
@@ -208,6 +288,45 @@ export class ShareEncryptionService {
     } catch (error) {
       console.error('Contact hash generation failed:', error);
       throw new Error('Failed to generate guardian contact hash');
+    }
+  }
+
+  /**
+   * Test encryption/decryption cycle to verify our implementation
+   * This helps debug AES-GCM issues by testing with known parameters
+   */
+  static async testEncryptionCycle(): Promise<boolean> {
+    try {
+      console.log('🧪 Testing encryption/decryption cycle...');
+      
+      const testParams = {
+        share: '0801881ceaed30ced900431c5f8222cd79a34b2c9799794bd8', // Sample share from logs
+        guardianContactHash: '9f3d3a2672efcda111a4b20c4037577fdb88de2b77e4958354ecd9baa6fd2e1a',
+        frontendSalt: '14d75fb6bd7941d3ff5867fb3d9e9fe8ecdabcd57bddcd6e5aed7a00b0d1bf01',
+        backendSalt: '9dab15a69e435152b1ffeb5da75a0f3c669b2558d1bbf47138cd6a6619f4af89',
+        setupTimestamp: 1750486481898
+      };
+      
+      // Encrypt
+      const encrypted = await this.encryptShare(testParams);
+      console.log('🧪 Test encryption successful, encrypted:', encrypted.substring(0, 50) + '...');
+      
+      // Decrypt
+      const decrypted = await this.decryptShare({
+        encryptedShare: encrypted,
+        ...testParams
+      });
+      console.log('🧪 Test decryption successful, decrypted:', decrypted);
+      
+      // Verify
+      const success = decrypted === testParams.share;
+      console.log('🧪 Test result:', success ? '✅ SUCCESS' : '❌ FAILED');
+      
+      return success;
+      
+    } catch (error) {
+      console.error('🧪 Test FAILED with error:', error);
+      return false;
     }
   }
 

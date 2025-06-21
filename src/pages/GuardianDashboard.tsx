@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { guardianApi } from '../api/guardian';
+import { recoveryApi } from '../api/recovery';
 import { useToast } from '../contexts/ToastContext';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -49,8 +50,16 @@ export const GuardianDashboard: React.FC = () => {
     queryFn: () => guardianApi.getCurrentVersion()
   });
 
+  // Query active recovery sessions
+  const { data: activeRecoveryData } = useQuery({
+    queryKey: ['activeRecoverySessions'],
+    queryFn: () => recoveryApi.getActiveRecoverySessions(),
+    refetchInterval: 10000 // Refresh every 10 seconds
+  });
+
   const guardians = guardiansData?.data || [];
   const currentVersion = versionData?.data || { version: 'v1.0.0' };
+  const activeRecoverySessions = activeRecoveryData || [];
   
   // Get guardian count from session if no permanent guardians
   const sessionGuardians = currentSession?.invitations || [];
@@ -125,6 +134,54 @@ export const GuardianDashboard: React.FC = () => {
     }
   };
 
+  const getRecoveryStateLabel = (state: string) => {
+    switch (state) {
+      case 'initiated':
+      case 'notified':
+        return 'Waiting for Guardians';
+      case 'approving':
+        return 'Collecting Shares';
+      case 'approved':
+        return 'Ready to Complete';
+      case 'completing':
+        return 'Completing Recovery';
+      default:
+        return state;
+    }
+  };
+
+  const getRecoveryStateColor = (state: string) => {
+    switch (state) {
+      case 'initiated':
+      case 'notified':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'approving':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'approved':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'completing':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getTimeRemaining = (expiresAt: string) => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diff = expiry.getTime() - now.getTime();
+    
+    if (diff <= 0) return 'Expired';
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m remaining`;
+    }
+    return `${minutes}m remaining`;
+  };
+
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
@@ -134,14 +191,16 @@ export const GuardianDashboard: React.FC = () => {
           <h1 className="text-xl font-semibold text-gray-900">
             Guardian Dashboard
           </h1>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -151,6 +210,115 @@ export const GuardianDashboard: React.FC = () => {
         showSuccess('Refreshed guardian list');
       }}>
         <div className="flex-1">
+        {/* Active Recovery Sessions - Most Prominent */}
+        {activeRecoverySessions.length > 0 && (
+          <div className="px-6 py-4 bg-white border-b border-gray-100">
+            <div className="mb-3">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                <span className="text-2xl mr-2">🚨</span>
+                Active Recovery in Progress
+              </h2>
+            </div>
+            {activeRecoverySessions.map((session, index) => (
+              <motion.div
+                key={session.sessionId}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="mb-3"
+              >
+                <Card 
+                  className={`border-2 ${getRecoveryStateColor(session.state)} cursor-pointer hover:shadow-lg transition-shadow`}
+                  onClick={() => navigate(`/recovery/progress/${session.sessionId}`)}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        {getRecoveryStateLabel(session.state)}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Session ID: {session.sessionId.slice(0, 12)}...
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">
+                        {getTimeRemaining(session.expiresAt)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="text-gray-600">Guardian Approvals</span>
+                      <span className="font-medium">
+                        {session.receivedShares || 0} / {session.requiredShares || 2}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ 
+                          width: `${Math.min(100, ((session.receivedShares || 0) / (session.requiredShares || 2)) * 100)}%` 
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Guardian Status */}
+                  {session.approvalsDetailed && session.approvalsDetailed.guardians.length > 0 && (
+                    <div className="space-y-1">
+                      {session.approvalsDetailed.guardians.map((guardian) => (
+                        <div key={guardian.guardianId} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center">
+                            <span className={`w-2 h-2 rounded-full mr-2 ${
+                              guardian.hasSubmitted ? 'bg-green-500' : 'bg-gray-300'
+                            }`} />
+                            <span className="text-gray-700">
+                              {guardian.type} Guardian
+                            </span>
+                          </div>
+                          <span className={guardian.hasSubmitted ? 'text-green-600' : 'text-gray-400'}>
+                            {guardian.hasSubmitted ? 'Approved' : 'Pending'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Action Button */}
+                  <div className="mt-4 flex items-center justify-between">
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/recovery/progress/${session.sessionId}`);
+                      }}
+                      className="flex-1 mr-2"
+                    >
+                      View Recovery Progress →
+                    </Button>
+                    {session.state === 'approved' && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/recovery/complete/${session.sessionId}`);
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        Complete Recovery
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
         {/* Status Overview */}
         <div className="px-6 py-4">
           <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
@@ -305,8 +473,30 @@ export const GuardianDashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Recovery Settings */}
+        {/* Recovery Section */}
         <div className="px-6 pb-8">
+          {/* Recovery Button - Prominent */}
+          <Card className="bg-orange-50 border-orange-200 mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Need to recover your wallet?</h3>
+                <p className="text-sm text-gray-600">Start the recovery process with your guardians</p>
+              </div>
+              <Button 
+                onClick={() => navigate('/recovery/start')}
+                variant="primary"
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
+                </svg>
+                Start Recovery
+              </Button>
+            </div>
+          </Card>
+
+          {/* Recovery Settings */}
           <Card className="bg-gray-50">
             <h3 className="font-semibold text-gray-900 mb-3">Recovery Settings</h3>
             <div className="space-y-2">
@@ -319,12 +509,9 @@ export const GuardianDashboard: React.FC = () => {
                 <span className="font-medium">{currentVersion?.version || 'v1.0.0'}</span>
               </div>
             </div>
-            <div className="mt-4 flex space-x-2">
+            <div className="mt-4">
               <Button variant="ghost" size="sm" onClick={() => navigate('/sessions')}>
                 📊 View History
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/recovery')}>
-                🔄 Start Recovery
               </Button>
             </div>
           </Card>

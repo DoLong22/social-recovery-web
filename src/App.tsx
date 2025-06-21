@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -11,8 +11,15 @@ import { SessionMonitoring } from './pages/SessionMonitoring';
 import { GuardianDashboard } from './pages/GuardianDashboard';
 import { Sessions } from './pages/Sessions';
 import { GuardianInvite } from './pages/GuardianInvite';
+import { RecoveryInitiation } from './pages/RecoveryInitiation';
+import { RecoveryProgress } from './pages/RecoveryProgress';
+import { RecoveryAuthentication } from './pages/RecoveryAuthentication';
+import { RecoveryDecryption } from './pages/RecoveryDecryption';
+import { RecoveryApproval } from './pages/RecoveryApproval';
+import { Profile } from './pages/Profile';
 import { ToastInitializer } from './components/ToastInitializer';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SmartRedirect } from './components/SmartRedirect';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -37,13 +44,16 @@ function App() {
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/guardian/invite/:token" element={<GuardianInvite />} />
+              <Route path="/recovery/approve" element={<RecoveryApproval />} />
               
               {/* Private routes */}
               <Route
                 path="/"
                 element={
                   <PrivateRoute>
-                    <Navigate to="/dashboard" replace />
+                    <Layout>
+                      <SmartRedirect />
+                    </Layout>
                   </PrivateRoute>
                 }
               />
@@ -93,6 +103,58 @@ function App() {
                   <PrivateRoute>
                     <Layout>
                       <Sessions />
+                    </Layout>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <PrivateRoute>
+                    <Layout>
+                      <Profile />
+                    </Layout>
+                  </PrivateRoute>
+                }
+              />
+              
+              {/* Recovery routes */}
+              <Route
+                path="/recovery/start"
+                element={
+                  <PrivateRoute>
+                    <Layout>
+                      <RecoveryInitiation />
+                    </Layout>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/recovery/progress/:sessionId"
+                element={
+                  <PrivateRoute>
+                    <Layout>
+                      <RecoveryProgress />
+                    </Layout>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/recovery/authenticate/:sessionId"
+                element={
+                  <PrivateRoute>
+                    <Layout>
+                      <RecoveryAuthentication />
+                    </Layout>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/recovery/decrypt/:sessionId"
+                element={
+                  <PrivateRoute>
+                    <Layout>
+                      <RecoveryDecryption />
                     </Layout>
                   </PrivateRoute>
                 }

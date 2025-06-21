@@ -6,8 +6,10 @@
 
 import { FrontendSaltService } from './saltDerivation';
 import { ShareEncryptionService } from './shareEncryption';
+import { WalletService } from './walletService';
 import { guardianApi } from '../api/guardian';
-// import { GuardianEncryption } from './shareGeneration'; // For Shamir's Secret Sharing
+import * as shamir from 'shamirs-secret-sharing';
+import { Buffer } from 'buffer';
 
 interface SetupSessionData {
   sessionId: string;
@@ -31,7 +33,6 @@ interface EncryptedShareResult {
 interface SetupFlowParams {
   sessionId: string;
   masterPassword: string;
-  recoverySecret: string;
 }
 
 export class GuardianSetupFlow {
@@ -42,41 +43,75 @@ export class GuardianSetupFlow {
    * @returns Promise<EncryptedShareResult[]> - Encrypted shares ready for backend
    */
   static async proceedWithSetup(params: SetupFlowParams): Promise<EncryptedShareResult[]> {
-    const { sessionId, masterPassword, recoverySecret } = params;
+    const { sessionId, masterPassword } = params;
 
     try {
       console.log('🔧 Starting guardian setup flow...');
 
+      // Get the actual wallet private key
+      const wallet = WalletService.getWallet();
+      if (!wallet) {
+        throw new Error('No wallet found. Please create or import a wallet first.');
+      }
+      console.log('💰 Using wallet private key for shares:', wallet.privateKey);
+
       // Step 1: Get session details and backend salt from API
       console.log('📡 Fetching session data and backend salt...');
       const sessionData = await this.getSessionData(sessionId);
-      
+
       // Step 2: Derive frontend salt from master password
       console.log('🔐 Deriving frontend salt from master password...');
+      console.log('SETUP - Salt derivation params:', {
+        masterPassword: masterPassword,
+        userId: sessionData.userId,
+        sessionId: sessionData.sessionId,
+        sessionType: 'GUARDIAN_SETUP'
+      });
+      
       const frontendSalt = await FrontendSaltService.deriveFrontendSalt({
         masterPassword,
         userId: sessionData.userId,
         sessionId: sessionData.sessionId
       });
+      console.log('SETUP - Generated frontendSalt:', frontendSalt);
 
-      // Step 3: Generate Shamir's Secret Shares
+      // Step 3: Generate Shamir's Secret Shares using real SSS and wallet private key
       console.log('🔀 Generating Shamir secret shares...');
-      const shares = await this.generateShamirShares(
-        recoverySecret,
-        sessionData.guardians.length,
-        sessionData.threshold
-      );
+      const privateKeyBuffer = Buffer.from(wallet.privateKey, 'hex');
+      const shareBuffers = shamir.split(privateKeyBuffer, {
+        shares: sessionData.guardians.length,
+        threshold: sessionData.threshold
+      });
+
+      const shares = shareBuffers.map(buffer => buffer.toString('hex'));
+      console.log(`Generated ${shares.length} shares with threshold ${sessionData.threshold}`);
 
       // Step 4: Encrypt each share with dual-salt system
       console.log('🔒 Encrypting shares with dual-salt system...');
       const encryptedShares = await Promise.all(
         sessionData.guardians.map(async (guardian, index) => {
+          console.log(`🔐 Encrypting share for guardian ${guardian.guardianId}:`, {
+            shareIndex: index,
+            originalShareLength: shares[index].length,
+            originalShareSample: shares[index].substring(0, 20) + '...',
+            guardianContactHash: guardian.contactHash,
+            frontendSalt: frontendSalt,
+            backendSalt: sessionData.backendSalt
+          });
+          
           const encryptedShare = await ShareEncryptionService.encryptShare({
             share: shares[index],
             guardianContactHash: guardian.contactHash,
             frontendSalt,
             backendSalt: sessionData.backendSalt,
             setupTimestamp: sessionData.setupTimestamp
+          });
+
+          console.log(`📦 Encrypted share for guardian ${guardian.guardianId}:`, {
+            encryptedShareLength: encryptedShare.length,
+            encryptedShareSample: encryptedShare.substring(0, 50) + '...',
+            encryptedShareEnd: '...' + encryptedShare.substring(encryptedShare.length - 20),
+            base64Encoded: true
           });
 
           return {
@@ -98,11 +133,11 @@ export class GuardianSetupFlow {
 
     } catch (error) {
       console.error('❌ Guardian setup flow failed:', error);
-      
+
       // Clear any sensitive data on error
       FrontendSaltService.clearSensitiveData(masterPassword);
       ShareEncryptionService.clearSensitiveData();
-      
+
       throw new Error(`Setup flow failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -126,7 +161,10 @@ export class GuardianSetupFlow {
 
       // Get current session details for threshold and user info
       const sessionResponse = await guardianApi.getSessionStatus(sessionId);
-      const userId = localStorage.getItem('userId') || 'unknown_user';
+      const userId = sessionResponse.userId || localStorage.getItem('userId') || (() => {
+        console.error('⚠️ No userId found - this will cause recovery issues!');
+        return 'unknown_user';
+      })();
 
       return {
         sessionId: prepareResponse.sessionId,
@@ -139,43 +177,6 @@ export class GuardianSetupFlow {
     } catch (error) {
       console.error('Failed to get session data:', error);
       throw new Error('Failed to prepare session. Please try again.');
-    }
-  }
-
-  /**
-   * Generate Shamir's Secret Shares
-   * 
-   * @param secret - The secret to split
-   * @param totalShares - Total number of shares
-   * @param threshold - Minimum shares needed for reconstruction
-   * @returns Promise<string[]> - Array of secret shares
-   */
-  private static async generateShamirShares(
-    secret: string,
-    totalShares: number,
-    threshold: number
-  ): Promise<string[]> {
-    try {
-      // For now, use the mock implementation from GuardianEncryption
-      // TODO: Replace with real Shamir's Secret Sharing library
-      const shares: string[] = [];
-      
-      for (let i = 0; i < totalShares; i++) {
-        const shareData = {
-          index: i + 1,
-          secret: secret, // In real implementation, this would be polynomial evaluation
-          threshold: threshold,
-          timestamp: Date.now()
-        };
-        
-        shares.push(btoa(JSON.stringify(shareData)));
-      }
-      
-      return shares;
-
-    } catch (error) {
-      console.error('Shamir share generation failed:', error);
-      throw new Error('Failed to generate secret shares');
     }
   }
 
@@ -299,9 +300,9 @@ export class GuardianSetupFlow {
       throw new Error('Master password is required');
     }
 
-    if (!params.recoverySecret || params.recoverySecret.length < 32) {
-      throw new Error('Recovery secret must be at least 32 characters');
-    }
+    // if (!params.recoverySecret || params.recoverySecret.length < 32) {
+    //   throw new Error('Recovery secret must be at least 32 characters');
+    // }
 
     // Validate password strength
     try {

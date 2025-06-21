@@ -56,6 +56,12 @@ export const Dashboard: React.FC = () => {
   const guardians = guardiansData?.data || [];
   const hasGuardians = guardians.length > 0;
 
+  // If user has guardians and no active session, redirect to GuardianDashboard
+  if (hasGuardians && (!currentSession || currentSession.status === 'COMPLETED')) {
+    navigate('/guardian-dashboard', { replace: true });
+    return null;
+  }
+
   // Show session status if active (but not completed)
   if (currentSession && currentSession.status !== 'COMPLETED') {
     return (
@@ -153,66 +159,31 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </Card>
-      </div>
-    );
-  }
 
-  // Show guardian dashboard if setup is complete but no active session
-  if (hasGuardians) {
-    return (
-      <div className="space-y-6">
-        {/* Welcome Back */}
-        <Card>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome Back!</h2>
-          <p className="text-gray-600 mb-4">
-            Your wallet is secured with {guardians.length} guardians.
-          </p>
-          <Button onClick={() => navigate('/guardian-dashboard')}>
-            Manage Guardians
-          </Button>
-        </Card>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{guardians.length}</div>
-              <div className="text-sm text-gray-600">Total Guardians</div>
+        {/* Recovery Option */}
+        <Card className="bg-gray-50 border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-medium text-gray-900">Need to recover your wallet?</h3>
+              <p className="text-sm text-gray-600 mt-1">Start the recovery process with your guardians</p>
             </div>
-          </Card>
-          <Card>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {guardians.filter((g: any) => g.status === 'ACTIVE').length}
-              </div>
-              <div className="text-sm text-gray-600">Active Guardians</div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="space-y-3">
             <Button 
-              fullWidth 
+              onClick={() => navigate('/recovery/start')}
               variant="outline"
-              onClick={() => navigate('/setup')}
+              size="sm"
             >
-              🔧 Add More Guardians
-            </Button>
-            <Button 
-              fullWidth 
-              variant="secondary"
-              onClick={() => navigate('/sessions')}
-            >
-              📊 View Session History
+              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                  d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
+              </svg>
+              Recover
             </Button>
           </div>
         </Card>
       </div>
     );
   }
+
 
   // Show empty state if no guardians
   return (

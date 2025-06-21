@@ -84,6 +84,7 @@ export interface SetupSessionResponse {
   }>;
   completionDetails?: any;
   nextSteps: string[];
+  userId: string
 }
 
 export interface AcceptInvitationDto {

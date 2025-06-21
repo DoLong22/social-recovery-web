@@ -81,9 +81,9 @@ export const ImprovedGuardianSetup: React.FC = () => {
       }
 
       // Auto-advance to next step if minimum met
-      if (newGuardians.length >= MIN_GUARDIANS) {
-        setTimeout(() => setCurrentStep(2), 500);
-      }
+      // if (newGuardians.length >= MIN_GUARDIANS) {
+      //   setTimeout(() => setCurrentStep(2), 500);
+      // }
     }
   };
 

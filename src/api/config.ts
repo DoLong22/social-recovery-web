@@ -34,6 +34,13 @@ export const ENDPOINTS = {
   
   // Recovery
   RECOVERY: {
+    INITIATE: '/recovery/initiate',
+    STATUS: (id: string) => `/recovery/${id}`,
+    SHARES: (id: string) => `/recovery/sessions/${id}/shares`,
     RETRIEVE_SALT: '/recovery/retrieve-salt',
+    SUBMIT_SHARE: '/recovery/submit-share',
+    CANCEL: (id: string) => `/recovery/${id}/cancel`,
+    ACTIVE: '/recovery/sessions/active',
+    APPROVE: (token: string) => `/recovery/approve/${token}`,
   },
 } as const;
