@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -6,10 +6,22 @@ import { guardianApi, GuardianType } from '../api/guardian';
 import type { CreateSetupSessionDto } from '../api/guardian';
 import { useToast } from '../contexts/ToastContext';
 import { Button } from '../components/ui/Button';
+import { ModernButton } from '../components/ui/ModernButton';
+import { AnimatedShield } from '../components/ui/AnimatedShield';
 import { Card } from '../components/ui/Card';
 import { ProgressBar, StepDots } from '../components/ui/ProgressBar';
-import { ThresholdSelector } from '../components/ui/ThresholdSelector';
+import { COLORS } from '../constants/design-system';
+import { GRADIENTS, MODERN_COLORS, SHADOWS, MODERN_TYPOGRAPHY } from '../constants/modern-design-system';
+import { useAuth } from '../contexts/AuthContext';
+import { EnhancedThresholdSelector } from '../components/ui/EnhancedThresholdSelector';
+import { EnhancedReviewSetup } from '../components/ui/EnhancedReviewSetup';
 import { useSuccessAnimation } from '../components/ui/SuccessAnimation';
+import { GuardianProgressSlots } from '../components/ui/GuardianProgressSlots';
+import { ModernGuardianTypeSelector } from '../components/ui/ModernGuardianTypeSelector';
+import { ModernGuardianCard } from '../components/ui/ModernGuardianCard';
+import { HelpTooltip } from '../components/ui/HelpTooltip';
+import { validateEmail, validatePhoneNumber, validateWalletAddress, formatPhoneNumber } from '../utils/validation';
+import { Mail, Phone, Wallet, Shield, AlertCircle } from 'lucide-react';
 
 interface Guardian {
   type: GuardianType;
@@ -27,8 +39,10 @@ const AUTO_INJECT_EMAILS = [
 export const ImprovedGuardianSetup: React.FC = () => {
   const navigate = useNavigate();
   const { showError } = useToast();
+  const { email } = useAuth();
   const { triggerSuccess, SuccessComponent } = useSuccessAnimation();
-  const [currentStep, setCurrentStep] = useState(0);
+  // Skip welcome step since we have merged welcome screen in dashboard
+  const [currentStep, setCurrentStep] = useState(0); // Start with welcome screen
   const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [isAddingGuardian, setIsAddingGuardian] = useState(false);
   const [autoInjectIndex, setAutoInjectIndex] = useState(0);
@@ -49,6 +63,9 @@ export const ImprovedGuardianSetup: React.FC = () => {
     name: '',
     contactInfo: '',
   });
+  
+  // Validation state
+  const [validationError, setValidationError] = useState<string>('');
 
   const MIN_GUARDIANS = 3;
 
@@ -68,22 +85,57 @@ export const ImprovedGuardianSetup: React.FC = () => {
   });
 
   const handleAddGuardian = () => {
-    if (newGuardian.name && newGuardian.contactInfo) {
-      const newGuardians = [...guardians, newGuardian];
-      setGuardians(newGuardians);
-      // Update threshold to recommended default when guardians change
-      setMinimumAcceptances(getDefaultThreshold(newGuardians.length));
-      setNewGuardian({ type: GuardianType.EMAIL, name: '', contactInfo: '' });
-      setIsAddingGuardian(false);
-      // Move to next auto-inject email
-      if (autoInjectIndex < AUTO_INJECT_EMAILS.length) {
-        setAutoInjectIndex(autoInjectIndex + 1);
-      }
-
-      // Auto-advance to next step if minimum met
-      // if (newGuardians.length >= MIN_GUARDIANS) {
-      //   setTimeout(() => setCurrentStep(2), 500);
-      // }
+    // Reset validation error
+    setValidationError('');
+    
+    // Validate name
+    if (!newGuardian.name.trim()) {
+      setValidationError('Guardian name is required');
+      return;
+    }
+    
+    // Validate contact info based on type
+    let validation = { valid: false, error: '' };
+    switch (newGuardian.type) {
+      case GuardianType.EMAIL:
+        validation = validateEmail(newGuardian.contactInfo);
+        break;
+      case GuardianType.PHONE:
+        validation = validatePhoneNumber(newGuardian.contactInfo);
+        break;
+      case GuardianType.WALLET:
+        validation = validateWalletAddress(newGuardian.contactInfo);
+        break;
+    }
+    
+    if (!validation.valid) {
+      setValidationError(validation.error || 'Invalid contact information');
+      return;
+    }
+    
+    // Check for duplicates
+    const isDuplicate = guardians.some(g => 
+      g.type === newGuardian.type && 
+      g.contactInfo.toLowerCase() === newGuardian.contactInfo.toLowerCase()
+    );
+    
+    if (isDuplicate) {
+      setValidationError('This guardian has already been added');
+      return;
+    }
+    
+    // Add guardian
+    const newGuardians = [...guardians, newGuardian];
+    setGuardians(newGuardians);
+    // Update threshold to recommended default when guardians change
+    setMinimumAcceptances(getDefaultThreshold(newGuardians.length));
+    setNewGuardian({ type: GuardianType.EMAIL, name: '', contactInfo: '' });
+    setIsAddingGuardian(false);
+    setValidationError('');
+    
+    // Move to next auto-inject email
+    if (autoInjectIndex < AUTO_INJECT_EMAILS.length) {
+      setAutoInjectIndex(autoInjectIndex + 1);
     }
   };
 
@@ -118,35 +170,102 @@ export const ImprovedGuardianSetup: React.FC = () => {
     }
   };
 
+  // Define step titles for dynamic header
+  const stepTitles = [
+    { number: 1, purpose: 'Add Your Guardians' },
+    { number: 2, purpose: 'Choose Recovery Rule' },
+    { number: 3, purpose: 'Review & Send Invites' }
+  ];
+
   const steps = [
     {
       title: 'Welcome',
       component: (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className='flex flex-col items-center justify-center h-full text-center px-6'
+          style={{
+            background: GRADIENTS.radialBackgroundBlue,
+          }}
         >
-          <div className='w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6'>
-            <span className='text-5xl'>🛡️</span>
-          </div>
-
-          <h1 className='text-3xl font-bold text-gray-900 mb-3'>
-            Secure Your Wallet with Guardians
-          </h1>
-
-          <p className='text-lg text-gray-600 mb-8 max-w-xs'>
-            Replace complex seed phrases with trusted friends & family
-          </p>
-
-          <Button
-            onClick={() => setCurrentStep(1)}
-            size='lg'
-            icon='→'
-            fullWidth
+          {/* Animated Shield */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className='mb-8'
           >
-            Get Started
-          </Button>
+            <AnimatedShield size={140} />
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h1
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+            className='mb-4'
+            style={{
+              fontSize: MODERN_TYPOGRAPHY.sizes['3xl'].size,
+              lineHeight: MODERN_TYPOGRAPHY.sizes['3xl'].lineHeight,
+              fontWeight: MODERN_TYPOGRAPHY.weights.black,
+              color: MODERN_COLORS.neutral[900],
+            }}
+          >
+            Secure Your Wallet with Guardians
+          </motion.h1>
+
+          {/* Sub-headline */}
+          <motion.p
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className='mb-10 max-w-sm'
+            style={{
+              fontSize: MODERN_TYPOGRAPHY.sizes.lg.size,
+              fontWeight: MODERN_TYPOGRAPHY.weights.medium,
+              color: MODERN_COLORS.neutral[700],
+            }}
+          >
+            Replace complex seed phrases with trusted friends & family
+          </motion.p>
+
+          {/* CTA Button */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            className='w-full max-w-xs'
+          >
+            <ModernButton
+              onClick={() => setCurrentStep(1)}
+              size='lg'
+              fullWidth
+              variant='primary'
+              icon={
+                <svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 7l5 5m0 0l-5 5m5-5H6' />
+                </svg>
+              }
+            >
+              Start Guardian Setup
+            </ModernButton>
+          </motion.div>
+
+          {/* User email - subtle placement */}
+          {email && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.6 }}
+              className='mt-8 text-sm'
+              style={{
+                color: MODERN_COLORS.neutral[500],
+              }}
+            >
+              {email}
+            </motion.p>
+          )}
         </motion.div>
       ),
     },
@@ -158,25 +277,23 @@ export const ImprovedGuardianSetup: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           className='flex flex-col h-full'
         >
-          {/* Compact Header */}
-          <div className='px-4 py-3 border-b border-gray-100'>
-            <h2 className='text-lg font-semibold text-gray-900'>
-              Add Your Guardians
-            </h2>
-            <div className='flex items-center justify-between mt-2'>
-              <p className='text-sm text-gray-600'>
-                {guardians.length} of {MIN_GUARDIANS} minimum
-              </p>
-              <div className='flex gap-1'>
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className={`h-2 w-8 rounded-full transition-colors ${
-                      i <= guardians.length ? 'bg-blue-500' : 'bg-gray-200'
-                    }`}
-                  />
-                ))}
-              </div>
+          {/* Compact Header with Gradient */}
+          <div 
+            className='px-4 py-4 border-b border-gray-100'
+            style={{
+              background: GRADIENTS.modalHeader,
+            }}
+          >
+            <div className='flex items-center justify-between'>
+              <GuardianProgressSlots 
+                current={guardians.length} 
+                minimum={MIN_GUARDIANS}
+                maximum={5}
+              />
+              <HelpTooltip 
+                title="What are guardians?"
+                content="Guardians are trusted contacts who store encrypted pieces of your recovery key. They cannot access your wallet alone - multiple guardians must cooperate to help you recover access."
+              />
             </div>
           </div>
 
@@ -185,57 +302,12 @@ export const ImprovedGuardianSetup: React.FC = () => {
             <div className='space-y-2'>
               <AnimatePresence>
                 {guardians.map((guardian, index) => (
-                  <motion.div
+                  <ModernGuardianCard
                     key={`${guardian.contactInfo}-${index}`}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95, height: 0 }}
-                    className='bg-white p-4 rounded-xl border border-gray-200 shadow-sm'
-                  >
-                    <div className='flex items-center'>
-                      <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${
-                          guardian.type === GuardianType.EMAIL
-                            ? 'bg-blue-100'
-                            : guardian.type === GuardianType.PHONE
-                            ? 'bg-green-100'
-                            : 'bg-purple-100'
-                        }`}
-                      >
-                        {guardian.type === GuardianType.EMAIL
-                          ? '📧'
-                          : guardian.type === GuardianType.PHONE
-                          ? '📱'
-                          : '🔐'}
-                      </div>
-                      <div className='flex-1 ml-3 min-w-0'>
-                        <p className='font-medium text-gray-900 truncate'>
-                          {guardian.name}
-                        </p>
-                        <p className='text-sm text-gray-500 truncate'>
-                          {guardian.contactInfo}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveGuardian(index)}
-                        className='ml-2 w-10 h-10 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg transition-colors'
-                      >
-                        <svg
-                          className='w-5 h-5'
-                          fill='none'
-                          viewBox='0 0 24 24'
-                          stroke='currentColor'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </motion.div>
+                    guardian={guardian}
+                    index={index}
+                    onRemove={() => handleRemoveGuardian(index)}
+                  />
                 ))}
               </AnimatePresence>
             </div>
@@ -298,8 +370,9 @@ export const ImprovedGuardianSetup: React.FC = () => {
                         placeholder='Guardian Name'
                         autoFocus
                       />
-                      {/* Auto-inject button */}
-                      {autoInjectIndex < AUTO_INJECT_EMAILS.length &&
+                      {/* Test data button - only for development */}
+                      {process.env.NODE_ENV === 'development' && 
+                        autoInjectIndex < AUTO_INJECT_EMAILS.length &&
                         newGuardian.type === GuardianType.EMAIL && (
                           <button
                             type='button'
@@ -312,80 +385,76 @@ export const ImprovedGuardianSetup: React.FC = () => {
                                 contactInfo: autoData.email,
                               });
                             }}
-                            className='absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors'
+                            className='absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors'
+                            title='Use test data'
                           >
-                            Auto {autoInjectIndex + 1}/3
+                            Test Data
                           </button>
                         )}
                     </div>
 
-                    {/* Horizontal Type Selector */}
-                    <div className='flex gap-2 overflow-x-auto pb-1'>
-                      {[
-                        {
-                          value: GuardianType.EMAIL,
-                          label: 'Email',
-                          icon: '📧',
-                        },
-                        {
-                          value: GuardianType.PHONE,
-                          label: 'Phone',
-                          icon: '📱',
-                        },
-                        {
-                          value: GuardianType.WALLET,
-                          label: 'Wallet',
-                          icon: '🔐',
-                        },
-                      ].map((type) => (
-                        <button
-                          key={type.value}
-                          type='button'
-                          onClick={() =>
-                            setNewGuardian({ ...newGuardian, type: type.value })
-                          }
-                          className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 whitespace-nowrap transition-all min-w-max ${
-                            newGuardian.type === type.value
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200'
-                          }`}
-                        >
-                          <span className='text-lg'>{type.icon}</span>
-                          <span className='text-sm font-medium'>
-                            {type.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Contact Input */}
-                    <input
-                      type={
-                        newGuardian.type === GuardianType.EMAIL
-                          ? 'email'
-                          : newGuardian.type === GuardianType.PHONE
-                          ? 'tel'
-                          : 'text'
-                      }
-                      value={newGuardian.contactInfo}
-                      onChange={(e) =>
-                        setNewGuardian({
-                          ...newGuardian,
-                          contactInfo: e.target.value,
-                        })
-                      }
-                      className='w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                      placeholder={getContactPlaceholder(newGuardian.type)}
+                    {/* Guardian Type Selector */}
+                    <ModernGuardianTypeSelector
+                      selectedType={newGuardian.type}
+                      onTypeChange={(type) => {
+                        setNewGuardian({ ...newGuardian, type, contactInfo: '' });
+                        setValidationError('');
+                      }}
                     />
 
-                    <Button
+                    {/* Contact Input with validation */}
+                    <div>
+                      <input
+                        type={
+                          newGuardian.type === GuardianType.EMAIL
+                            ? 'email'
+                            : newGuardian.type === GuardianType.PHONE
+                            ? 'tel'
+                            : 'text'
+                        }
+                        value={newGuardian.contactInfo}
+                        onChange={(e) => {
+                          let value = e.target.value;
+                          // Auto-format phone numbers
+                          if (newGuardian.type === GuardianType.PHONE) {
+                            value = formatPhoneNumber(value);
+                          }
+                          setNewGuardian({
+                            ...newGuardian,
+                            contactInfo: value,
+                          });
+                          setValidationError('');
+                        }}
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          validationError ? 'border-red-300' : 'border-gray-300'
+                        }`}
+                        placeholder={getContactPlaceholder(newGuardian.type)}
+                      />
+                      {validationError && (
+                        <div className='flex items-center gap-2 mt-2 text-red-600'>
+                          <AlertCircle className='w-4 h-4' />
+                          <span className='text-sm'>{validationError}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Security message */}
+                    <div className='bg-gray-50 rounded-lg p-3'>
+                      <p className='text-xs text-gray-600 flex items-center gap-2'>
+                        <Shield className='w-4 h-4' />
+                        Guardians only store encrypted pieces of your recovery key
+                      </p>
+                    </div>
+
+                    <ModernButton
                       onClick={handleAddGuardian}
-                      disabled={!newGuardian.name || !newGuardian.contactInfo}
                       fullWidth
                       size='lg'
+                      variant='primary'
+                      disabled={!newGuardian.name || !newGuardian.contactInfo}
                     >
                       Add Guardian
-                    </Button>
+                    </ModernButton>
                   </div>
                 </motion.div>
               ) : (
@@ -398,7 +467,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
                 >
                   {guardians.length < MIN_GUARDIANS ? (
                     <>
-                      <Button
+                      <ModernButton
                         onClick={() => {
                           setIsAddingGuardian(true);
                           // Reset auto-inject for new guardian
@@ -408,40 +477,45 @@ export const ImprovedGuardianSetup: React.FC = () => {
                         }}
                         fullWidth
                         size='lg'
+                        variant='primary'
+                        icon={
+                          <svg
+                            className='w-5 h-5'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                          >
+                            <path
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              strokeWidth={2}
+                              d='M12 6v6m0 0v6m0-6h6m-6 0H6'
+                            />
+                          </svg>
+                        }
+                        iconPosition='left'
                       >
-                        <svg
-                          className='w-5 h-5 mr-2'
-                          fill='none'
-                          stroke='currentColor'
-                          viewBox='0 0 24 24'
-                        >
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M12 6v6m0 0v6m0-6h6m-6 0H6'
-                          />
-                        </svg>
                         Add Guardian
-                      </Button>
-                      <button
-                        onClick={() => setCurrentStep(0)}
-                        className='w-full text-center text-gray-500 text-sm hover:text-gray-700 py-2'
-                      >
-                        ← Back to Email
-                      </button>
+                      </ModernButton>
+                      {/* Back button removed since we skip welcome step */}
                     </>
                   ) : (
                     <>
-                      <Button
+                      <ModernButton
                         onClick={() => setCurrentStep(2)}
                         fullWidth
                         size='lg'
+                        variant='primary'
+                        icon={
+                          <svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 7l5 5m0 0l-5 5m5-5H6' />
+                          </svg>
+                        }
                       >
-                        Continue → ({guardians.length} guardians)
-                      </Button>
+                        Continue to Security Settings
+                      </ModernButton>
                       <div className='flex gap-2'>
-                        <Button
+                        <ModernButton
                           onClick={() => {
                             setIsAddingGuardian(true);
                             // Reset auto-inject for new guardian
@@ -449,18 +523,12 @@ export const ImprovedGuardianSetup: React.FC = () => {
                               setAutoInjectIndex(guardians.length);
                             }
                           }}
-                          variant='outline'
+                          variant='ghost'
                           fullWidth
                         >
                           Add More
-                        </Button>
-                        <Button
-                          variant='ghost'
-                          onClick={() => setCurrentStep(0)}
-                          fullWidth
-                        >
-                          ← Email
-                        </Button>
+                        </ModernButton>
+                        {/* Back button removed since we skip welcome step */}
                       </div>
                     </>
                   )}
@@ -477,21 +545,31 @@ export const ImprovedGuardianSetup: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className='px-6 py-4'
+          className='flex flex-col h-full'
         >
-          <ThresholdSelector
-            totalGuardians={guardians.length}
-            threshold={minimumAcceptances}
-            onThresholdChange={setMinimumAcceptances}
-          />
+          {/* Scrollable content area */}
+          <div className='flex-1 overflow-y-auto px-6 py-4'>
+            <EnhancedThresholdSelector
+              totalGuardians={guardians.length}
+              threshold={minimumAcceptances}
+              onThresholdChange={setMinimumAcceptances}
+            />
+          </div>
 
-          <div className='mt-6 flex gap-3'>
-            <Button variant='ghost' onClick={() => setCurrentStep(1)} fullWidth>
-              ← Edit Guardians
-            </Button>
-            <Button onClick={() => setCurrentStep(3)} fullWidth>
-              Continue →
-            </Button>
+          {/* Fixed bottom navigation */}
+          <div className='px-6 py-4 bg-white border-t border-gray-100'>
+            <div className='flex gap-3'>
+              <Button variant='ghost' onClick={() => setCurrentStep(1)} fullWidth>
+                ← Back
+              </Button>
+              <Button 
+                onClick={() => setCurrentStep(3)} 
+                fullWidth
+                className='bg-primary-500 hover:bg-primary-600'
+              >
+                Review Setup →
+              </Button>
+            </div>
           </div>
         </motion.div>
       ),
@@ -502,73 +580,17 @@ export const ImprovedGuardianSetup: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className='px-6 py-4'
+          className='flex flex-col h-full'
         >
-          <div className='mb-6'>
-            <h2 className='text-2xl font-bold text-gray-900 mb-2'>
-              Review Your Setup
-            </h2>
-            <p className='text-gray-600'>
-              Confirm your guardians before sending invitations
-            </p>
-          </div>
-
-          <div className='space-y-3 mb-6'>
-            {guardians.map((guardian, index) => (
-              <Card key={index} padding='sm'>
-                <div className='flex items-center space-x-3'>
-                  <span className='text-2xl'>
-                    {guardian.type === GuardianType.EMAIL
-                      ? '📧'
-                      : guardian.type === GuardianType.PHONE
-                      ? '📱'
-                      : '🔐'}
-                  </span>
-                  <div>
-                    <p className='font-semibold text-gray-900'>
-                      {guardian.name}
-                    </p>
-                    <p className='text-sm text-gray-600'>
-                      {guardian.contactInfo}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          <Card className='bg-green-50 border-green-200 mb-6'>
-            <div className='flex items-center space-x-2 text-green-800'>
-              <span className='text-xl'>✓</span>
-              <div>
-                <p className='font-medium'>
-                  {guardians.length} guardians will secure your wallet
-                </p>
-                <p className='text-sm'>
-                  You'll need at least {minimumAcceptances} to recover
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <div className='space-y-3'>
-            <Button
-              onClick={handleSubmit}
-              loading={createSessionMutation.isPending}
-              fullWidth
-              size='lg'
-            >
-              Send Invitations
-            </Button>
-
-            <Button
-              variant='ghost'
-              onClick={() => setCurrentStep(2)}
-              fullWidth
-              disabled={createSessionMutation.isPending}
-            >
-              ← Edit Security
-            </Button>
+          {/* Scrollable content area */}
+          <div className='flex-1 overflow-y-auto px-6 py-4'>
+            <EnhancedReviewSetup
+              guardians={guardians}
+              threshold={minimumAcceptances}
+              onSubmit={handleSubmit}
+              onEditSecurity={() => setCurrentStep(2)}
+              isSubmitting={createSessionMutation.isPending}
+            />
           </div>
         </motion.div>
       ),
@@ -579,14 +601,14 @@ export const ImprovedGuardianSetup: React.FC = () => {
     <div className='h-full flex flex-col bg-white'>
       {/* Clean Progress Header with Close */}
       {currentStep > 0 && (
-        <div className='px-4 py-3 border-b border-gray-100 bg-white relative'>
+        <div className='px-4 py-2 bg-white/95 backdrop-blur-sm sticky top-0 z-30 border-b border-gray-100 relative'>
           {/* Close button - top right */}
           <button
             onClick={() => navigate('/dashboard')}
-            className='absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors'
+            className='absolute top-2 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors'
           >
             <svg
-              className='w-5 h-5'
+              className='w-4 h-4'
               fill='none'
               viewBox='0 0 24 24'
               stroke='currentColor'
@@ -600,16 +622,40 @@ export const ImprovedGuardianSetup: React.FC = () => {
             </svg>
           </button>
 
-          <div className='text-center mb-3 pr-8'>
-            <h1 className='text-lg font-semibold text-gray-900'>
-              Guardian Setup
-            </h1>
-            <p className='text-sm text-gray-500 mt-1'>
-              Step {currentStep} of {steps.length - 1}
-            </p>
+          <div className='text-center mb-2 pr-8'>
+            <AnimatePresence mode='wait'>
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <h1 className='flex items-baseline justify-center gap-1.5 flex-wrap'>
+                  <span className='text-sm font-semibold text-primary-500'>
+                    Step {currentStep}:
+                  </span>
+                  <span className='text-base font-bold text-gray-900'>
+                    {stepTitles[currentStep - 1].purpose}
+                  </span>
+                </h1>
+              </motion.div>
+            </AnimatePresence>
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className='text-sm text-gray-500 mt-1'
+            >
+              {currentStep === 1 && 'Choose trusted friends to help secure your wallet'}
+              {currentStep === 2 && 'Set how many guardians are needed for recovery'}
+              {currentStep === 3 && 'Confirm your setup before sending invitations'}
+            </motion.p>
           </div>
 
-          <ProgressBar value={(currentStep / (steps.length - 1)) * 100} />
+          <div className='mt-2'>
+            <ProgressBar value={((currentStep - 1) / 3) * 100} />
+          </div>
         </div>
       )}
 
@@ -625,7 +671,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
       {/* Compact Step Dots */}
       {currentStep > 0 && (
         <div className='px-4 py-3 bg-white border-t border-gray-100'>
-          <StepDots totalSteps={steps.length} currentStep={currentStep + 1} />
+          <StepDots totalSteps={3} currentStep={currentStep} />
         </div>
       )}
 

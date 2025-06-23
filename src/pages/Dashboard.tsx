@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { guardianApi } from '../api/guardian';
-import { EmptyState } from '../components/ui/EmptyState';
+import { EnhancedEmptyState } from '../components/ui/EnhancedEmptyState';
+import { Shield } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 
@@ -187,11 +188,11 @@ export const Dashboard: React.FC = () => {
 
   // Show empty state if no guardians
   return (
-    <div className="h-full flex items-center justify-center px-6">
-      <EmptyState
-        icon="🛡️"
-        title="Welcome to Social Recovery"
-        description="Secure your wallet by setting up trusted guardians who can help you recover access"
+    <div className="h-full flex items-center justify-center px-6 bg-gray-50">
+      <EnhancedEmptyState
+        icon={<Shield className="w-12 h-12 text-primary-500" />}
+        title="Secure Your Wallet with Guardians"
+        description="Replace complex seed phrases with trusted friends and family who can help you recover access when needed"
         action={{
           label: "Start Guardian Setup",
           onClick: () => navigate('/setup')

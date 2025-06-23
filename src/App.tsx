@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { PrivateRoute } from './components/PrivateRoute';
-import { Layout } from './components/Layout';
+import { ModernLayout as Layout } from './components/ModernLayout';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { ImprovedGuardianSetup } from './pages/ImprovedGuardianSetup';
