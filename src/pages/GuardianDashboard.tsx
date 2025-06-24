@@ -479,7 +479,7 @@ export const GuardianDashboard: React.FC = () => {
           <Card className="bg-orange-50 border-orange-200 mb-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Need to recover your wallet?</h3>
+                <h3 className="font-semibold text-gray-900 mb-1">Need to recover yoursssssssssssssss wallet?</h3>
                 <p className="text-sm text-gray-600">Start the recovery process with your guardians</p>
               </div>
               <Button 

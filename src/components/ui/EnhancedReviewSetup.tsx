@@ -96,10 +96,10 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
             animate={{ rotate: [0, 15, -15, 0] }}
             transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
           >
-            <Sparkles className="w-6 h-6" style={{ color: VIBRANT_COLORS.radiantOrange }} />
+            <Sparkles className="w-5 h-5" style={{ color: VIBRANT_COLORS.radiantOrange }} />
           </motion.div>
           <motion.p 
-            className="text-2xl font-black"
+            className="text-xl font-black"
             style={{ 
               fontFamily: VIBRANT_TYPOGRAPHY.fonts.display,
               background: VIBRANT_GRADIENTS.ctaOrange,
@@ -114,7 +114,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
             animate={{ rotate: [0, -15, 15, 0] }}
             transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
           >
-            <Sparkles className="w-6 h-6" style={{ color: VIBRANT_COLORS.radiantOrange }} />
+            <Sparkles className="w-5 h-5" style={{ color: VIBRANT_COLORS.radiantOrange }} />
           </motion.div>
         </div>
         <p style={{ color: VIBRANT_COLORS.darkCarbon, fontSize: VIBRANT_TYPOGRAPHY.sizes.body.size }}>
@@ -131,7 +131,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <Shield className="w-5 h-5" style={{ color: MODERN_COLORS.primary[500] }} />
+          <Shield className="w-4 h-4" style={{ color: MODERN_COLORS.primary[500] }} />
           Your Guardian Network
         </motion.h3>
         
@@ -147,7 +147,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
               transition={{ delay: 0.3 + index * 0.1 }}
             >
               <motion.div
-                className="relative bg-white rounded-2xl p-5 border-2 border-gray-100 transition-all duration-300"
+                className="relative bg-white rounded-2xl p-4 border-2 border-gray-100 transition-all duration-300"
                 style={{ boxShadow: VIBRANT_SHADOWS.cardFloat }}
                 whileHover={{ 
                   boxShadow: style.shadow,
@@ -164,12 +164,12 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
                 <div className="relative flex items-center gap-4">
                   {/* Enhanced icon */}
                   <motion.div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center relative"
+                    className="w-12 h-12 rounded-xl flex items-center justify-center relative"
                     style={{ background: style.gradient }}
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Icon className="w-7 h-7 text-white" />
+                    <Icon className="w-6 h-6 text-white" />
                     <div 
                       className="absolute inset-0 rounded-2xl blur-lg opacity-30"
                       style={{ background: style.gradient }}
@@ -180,7 +180,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
                       <p 
-                        className="font-bold text-lg"
+                        className="font-bold text-base"
                         style={{ color: MODERN_COLORS.neutral[900] }}
                       >
                         {guardian.name}
@@ -208,13 +208,13 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
 
                   {/* Status indicator */}
                   <motion.div
-                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    className="w-7 h-7 rounded-full flex items-center justify-center"
                     style={{ background: VIBRANT_GRADIENTS.successGradient }}
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.6 + index * 0.1, type: 'spring' }}
                   >
-                    <CheckCircle className="w-5 h-5 text-white" />
+                    <CheckCircle className="w-4 h-4 text-white" />
                   </motion.div>
                 </div>
               </motion.div>
@@ -230,13 +230,13 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
         transition={{ delay: 0.5 }}
       >
         <motion.div
-          className="rounded-2xl p-6 relative overflow-hidden"
+          className="rounded-2xl p-5 relative overflow-hidden"
           style={{
-            background: VIBRANT_GRADIENTS.successGradient,
-            border: 'none',
-            boxShadow: VIBRANT_SHADOWS.successGlow,
+            background: `linear-gradient(135deg, ${VIBRANT_COLORS.success.light} 0%, ${VIBRANT_COLORS.softWhite} 100%)`,
+            border: `1px solid ${VIBRANT_COLORS.success.main}`,
+            boxShadow: VIBRANT_SHADOWS.cardFloat,
           }}
-          whileHover={{ scale: 1.02, boxShadow: '0px 15px 40px rgba(0, 230, 118, 0.5), 0px 8px 20px rgba(110, 255, 0, 0.4)' }}
+          whileHover={{ scale: 1.01, boxShadow: VIBRANT_SHADOWS.cardHover }}
         >
           {/* Animated background pattern */}
           <div className="absolute inset-0 opacity-10">
@@ -251,18 +251,18 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
           
           <div className="relative flex items-start gap-4">
             <motion.div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ background: 'rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(10px)' }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(255, 255, 255, 0.9)' }}
               whileHover={{ scale: 1.1, rotate: 360 }}
               transition={{ duration: 0.5 }}
             >
-              <CheckCircle className="w-6 h-6 text-white" />
+              <CheckCircle className="w-5 h-5" style={{ color: VIBRANT_COLORS.success.main }} />
             </motion.div>
             
             <div className="flex-1">
               <motion.p 
-                className="font-bold text-xl mb-2"
-                style={{ color: VIBRANT_COLORS.pureWhite, textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' }}
+                className="font-bold text-lg mb-2"
+                style={{ color: VIBRANT_COLORS.success.dark }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
@@ -272,7 +272,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
               
               <motion.p 
                 className="text-sm font-medium mb-4"
-                style={{ color: VIBRANT_COLORS.pureWhite, opacity: 0.9 }}
+                style={{ color: VIBRANT_COLORS.darkCarbon }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7 }}
@@ -282,11 +282,10 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
               
               {/* Trust reinforcement message */}
               <motion.div
-                className="p-4 rounded-xl"
+                className="p-3 rounded-xl"
                 style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  backdropFilter: 'blur(10px)',
+                  backgroundColor: VIBRANT_COLORS.success.light,
+                  border: `1px solid ${VIBRANT_COLORS.success.main}40`,
                 }}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -294,7 +293,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
               >
                 <div className="flex items-start gap-3">
                   <motion.div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    className="w-7 h-7 rounded-lg flex items-center justify-center"
                     style={{ background: GRADIENTS.primaryButton }}
                     whileHover={{ scale: 1.1 }}
                   >
@@ -303,13 +302,13 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
                   <div>
                     <p 
                       className="text-xs font-bold mb-1"
-                      style={{ color: VIBRANT_COLORS.pureWhite }}
+                      style={{ color: VIBRANT_COLORS.success.dark }}
                     >
                       100% Secure & Private
                     </p>
                     <p 
                       className="text-xs leading-relaxed"
-                      style={{ color: VIBRANT_COLORS.pureWhite, opacity: 0.9 }}
+                      style={{ color: VIBRANT_COLORS.darkCarbon }}
                     >
                       Guardians only receive encrypted shares, never your actual wallet key
                     </p>
@@ -379,7 +378,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
 
       {/* Progress Indicator */}
       <motion.div 
-        className="rounded-2xl p-5"
+        className="rounded-2xl p-4"
         style={{
           background: VIBRANT_GRADIENTS.lightBackground,
           border: '1px solid rgba(0, 0, 0, 0.05)',
@@ -390,7 +389,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
       >
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-bold" style={{ color: VIBRANT_COLORS.darkCarbon }}>Setup Progress</span>
-          <span className="text-sm font-semibold" style={{ color: VIBRANT_COLORS.electricLime }}>Step 3 of 3</span>
+          <span className="text-sm font-semibold" style={{ color: VIBRANT_COLORS.success.main }}>Step 3 of 3</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
           <motion.div
@@ -401,7 +400,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
             style={{ background: VIBRANT_GRADIENTS.successGradient }}
           />
         </div>
-        <p className="text-xs font-medium mt-3" style={{ color: VIBRANT_COLORS.vibrantEmerald }}>
+        <p className="text-xs font-medium mt-3" style={{ color: VIBRANT_COLORS.success.main }}>
           ✨ Ready to send invitations!
         </p>
       </motion.div>
@@ -426,7 +425,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
                 animate={{ x: [0, 3, 0] }}
                 transition={{ duration: 1, repeat: Infinity }}
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4" />
               </motion.div>
             ) : undefined
           }

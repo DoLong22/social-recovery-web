@@ -76,20 +76,20 @@ export const VIBRANT_GRADIENTS = {
 };
 
 export const VIBRANT_SHADOWS = {
-  // Glowing Shadows
-  primaryGlow: '0px 10px 30px rgba(0, 123, 255, 0.4), 0px 5px 15px rgba(94, 0, 255, 0.3)',
-  successGlow: '0px 8px 25px rgba(0, 230, 118, 0.4), 0px 4px 12px rgba(110, 255, 0, 0.3)',
-  warningGlow: '0px 8px 25px rgba(255, 127, 0, 0.4), 0px 4px 12px rgba(255, 69, 0, 0.3)',
+  // Glowing Shadows (reduced intensity)
+  primaryGlow: '0px 4px 12px rgba(0, 123, 255, 0.2), 0px 2px 6px rgba(94, 0, 255, 0.15)',
+  successGlow: '0px 4px 12px rgba(0, 230, 118, 0.2), 0px 2px 6px rgba(110, 255, 0, 0.15)',
+  warningGlow: '0px 4px 12px rgba(255, 127, 0, 0.2), 0px 2px 6px rgba(255, 69, 0, 0.15)',
   
-  // Card Shadows
-  cardFloat: '0px 15px 35px rgba(0, 0, 0, 0.1), 0px 5px 15px rgba(0, 0, 0, 0.05)',
-  cardHover: '0px 20px 40px rgba(0, 0, 0, 0.15), 0px 8px 20px rgba(0, 0, 0, 0.08)',
+  // Card Shadows (more subtle)
+  cardFloat: '0px 4px 12px rgba(0, 0, 0, 0.06), 0px 2px 6px rgba(0, 0, 0, 0.04)',
+  cardHover: '0px 8px 20px rgba(0, 0, 0, 0.08), 0px 4px 10px rgba(0, 0, 0, 0.04)',
   
-  // Colored Shadows
-  blueGlow: '0px 8px 25px rgba(0, 163, 255, 0.3)',
-  purpleGlow: '0px 8px 25px rgba(163, 0, 255, 0.3)',
-  greenGlow: '0px 8px 25px rgba(57, 255, 20, 0.3)',
-  orangeGlow: '0px 8px 25px rgba(255, 127, 0, 0.3)',
+  // Colored Shadows (reduced)
+  blueGlow: '0px 4px 12px rgba(0, 163, 255, 0.15)',
+  purpleGlow: '0px 4px 12px rgba(163, 0, 255, 0.15)',
+  greenGlow: '0px 4px 12px rgba(57, 255, 20, 0.15)',
+  orangeGlow: '0px 4px 12px rgba(255, 127, 0, 0.15)',
 };
 
 export const VIBRANT_TYPOGRAPHY = {

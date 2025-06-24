@@ -277,7 +277,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
                         }
                         className='w-full px-4 py-3 pr-24 border-2 border-gray-200 rounded-xl transition-all duration-300 bg-white/80'
                         style={{
-                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.025)',
                         }}
                         onFocus={(e) => {
                           e.target.style.borderColor = VIBRANT_COLORS.electricBlue;
@@ -285,7 +285,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
                         }}
                         onBlur={(e) => {
                           e.target.style.borderColor = '#E5E7EB';
-                          e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+                          e.target.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.025)';
                         }}
                         placeholder='Guardian Name'
                         autoFocus
@@ -349,7 +349,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
                           validationError ? 'border-red-400' : 'border-gray-200'
                         }`}
                         style={{
-                          boxShadow: validationError ? VIBRANT_SHADOWS.orangeGlow : '0 2px 8px rgba(0, 0, 0, 0.05)',
+                          boxShadow: validationError ? VIBRANT_SHADOWS.orangeGlow : '0 1px 4px rgba(0, 0, 0, 0.025)',
                         }}
                         onFocus={(e) => {
                           if (!validationError) {
@@ -360,7 +360,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
                         onBlur={(e) => {
                           if (!validationError) {
                             e.target.style.borderColor = '#E5E7EB';
-                            e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+                            e.target.style.boxShadow = '0 1px 4px rgba(0, 0, 0, 0.025)';
                           }
                         }}
                         placeholder={getContactPlaceholder(newGuardian.type)}

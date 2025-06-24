@@ -7,7 +7,16 @@ interface AnimatedShieldProps {
   className?: string;
 }
 
-export const AnimatedShield: React.FC<AnimatedShieldProps> = ({ size = 120, className = '' }) => {
+export const AnimatedShield: React.FC<AnimatedShieldProps> = ({ size = 90, className = '' }) => {
+  // Floating animation
+  const floatingAnimation = {
+    y: [-10, 10, -10],
+    transition: {
+      duration: 4,
+      repeat: Infinity,
+      ease: "easeInOut" as const,
+    },
+  };
   // Animation variants for the shield
   const shieldVariants = {
     initial: {
@@ -24,22 +33,6 @@ export const AnimatedShield: React.FC<AnimatedShieldProps> = ({ size = 120, clas
     },
   };
 
-  // Animation for the protective aura
-  const auraVariants = {
-    initial: {
-      scale: 0.9,
-      opacity: 0,
-    },
-    animate: {
-      scale: [1, 1.2, 1],
-      opacity: [0.3, 0.5, 0.3],
-      transition: {
-        duration: 3,
-        repeat: Infinity,
-        ease: 'easeInOut' as const,
-      },
-    },
-  };
 
   // Animation for connection lines
   const lineVariants = {
@@ -59,17 +52,12 @@ export const AnimatedShield: React.FC<AnimatedShieldProps> = ({ size = 120, clas
   };
 
   return (
-    <div className={`relative ${className}`} style={{ width: size, height: size }}>
-      {/* Protective Aura */}
-      <motion.div
-        variants={auraVariants}
-        initial="initial"
-        animate="animate"
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: `radial-gradient(circle, ${VIBRANT_COLORS.neonPurple}40 0%, ${VIBRANT_COLORS.radiantOrange}20 50%, transparent 70%)`,
-        }}
-      />
+    <motion.div 
+      className={`relative ${className}`} 
+      style={{ width: size, height: size }}
+      animate={floatingAnimation}
+    >
+      {/* Removed blur aura for cleaner look */}
 
       {/* Main Shield */}
       <motion.svg
@@ -81,30 +69,67 @@ export const AnimatedShield: React.FC<AnimatedShieldProps> = ({ size = 120, clas
       >
         <defs>
           <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={VIBRANT_COLORS.glowGreen} />
-            <stop offset="100%" stopColor={VIBRANT_COLORS.electricBlue} />
+            <stop offset="0%" stopColor={VIBRANT_COLORS.glowGreen} stopOpacity="1" />
+            <stop offset="50%" stopColor={VIBRANT_COLORS.electricTeal} stopOpacity="1" />
+            <stop offset="100%" stopColor={VIBRANT_COLORS.electricBlue} stopOpacity="1" />
+          </linearGradient>
+          
+          <linearGradient id="shieldBorderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={VIBRANT_COLORS.pureWhite} stopOpacity="0.9" />
+            <stop offset="50%" stopColor={VIBRANT_COLORS.electricBlue} stopOpacity="1" />
+            <stop offset="100%" stopColor={VIBRANT_COLORS.deepViolet} stopOpacity="1" />
           </linearGradient>
           
           <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feGaussianBlur stdDeviation="0" result="coloredBlur"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
           </filter>
+          
+          <filter id="shieldShadow">
+            <feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity="0.3" flood-color="#000000"/>
+          </filter>
         </defs>
 
+        {/* Outer border for extra clarity */}
+        <path
+          d="M60 10 L90 30 L90 70 C90 85 75 100 60 105 C45 100 30 85 30 70 L30 30 Z"
+          fill="none"
+          stroke={VIBRANT_COLORS.pureWhite}
+          strokeWidth="6"
+          opacity="0.5"
+        />
+        
         {/* Shield Path */}
         <path
           d="M60 10 L90 30 L90 70 C90 85 75 100 60 105 C45 100 30 85 30 70 L30 30 Z"
           fill="url(#shieldGradient)"
-          stroke={VIBRANT_COLORS.electricBlue}
-          strokeWidth="2"
+          stroke="url(#shieldBorderGradient)"
+          strokeWidth="4"
           filter="url(#glow)"
+          style={{ 
+            filter: 'drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.2))',
+            paintOrder: 'stroke fill'
+          }}
         />
 
-        {/* Center Lock Icon */}
+        {/* Center Lock Icon with enhanced visibility */}
         <g transform="translate(60, 55)">
+          {/* Lock background for contrast */}
+          <motion.rect
+            x="-12"
+            y="-7"
+            width="24"
+            height="19"
+            rx="3"
+            fill={VIBRANT_COLORS.darkCarbon}
+            opacity="0.3"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.7, duration: 0.3 }}
+          />
           <motion.rect
             x="-10"
             y="-5"
@@ -120,7 +145,7 @@ export const AnimatedShield: React.FC<AnimatedShieldProps> = ({ size = 120, clas
             d="M-8 -5 L-8 -10 A8 8 0 0 1 8 -10 L8 -5"
             fill="none"
             stroke={VIBRANT_COLORS.pureWhite}
-            strokeWidth="3"
+            strokeWidth="4"
             strokeLinecap="round"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -129,7 +154,7 @@ export const AnimatedShield: React.FC<AnimatedShieldProps> = ({ size = 120, clas
           <motion.circle
             cx="0"
             cy="2"
-            r="2"
+            r="3"
             fill={VIBRANT_COLORS.electricBlue}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -222,6 +247,7 @@ export const AnimatedShield: React.FC<AnimatedShieldProps> = ({ size = 120, clas
           transition={{ delay: 2.3, duration: 0.3 }}
         />
       </svg>
-    </div>
+      {/* Removed additional glow layer */}
+    </motion.div>
   );
 };

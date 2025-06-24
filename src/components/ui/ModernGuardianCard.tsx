@@ -75,7 +75,7 @@ export const ModernGuardianCard: React.FC<ModernGuardianCardProps> = ({
       className='relative group'
     >
       <motion.div
-        className='bg-white rounded-xl border-2 border-gray-100 p-4 transition-all duration-300'
+        className='bg-white rounded-xl border-2 border-gray-100 p-3 transition-all duration-300'
         style={{ boxShadow: VIBRANT_SHADOWS.cardFloat }}
         whileHover={{
           boxShadow: style.shadow,
@@ -84,19 +84,19 @@ export const ModernGuardianCard: React.FC<ModernGuardianCardProps> = ({
         }}
       >
         {/* Guardian content */}
-        <div className='flex items-center gap-3'>
+        <div className='flex items-center gap-2'>
           {/* Icon with gradient background */}
           <motion.div
-            className='w-12 h-12 rounded-xl flex items-center justify-center relative'
+            className='w-10 h-10 rounded-lg flex items-center justify-center relative'
             style={{ background: style.gradient }}
             whileHover={{ scale: 1.1 }}
             transition={{ duration: 0.2 }}
           >
-            <Icon className='w-6 h-6 text-white' />
+            <Icon className='w-5 h-5 text-white' />
             
             {/* Subtle glow effect */}
             <div
-              className='absolute inset-0 rounded-xl opacity-30 blur-lg'
+              className='absolute inset-0 rounded-lg opacity-30 blur-lg'
               style={{ background: style.gradient }}
             />
           </motion.div>
@@ -108,7 +108,7 @@ export const ModernGuardianCard: React.FC<ModernGuardianCardProps> = ({
                 {guardian.name}
               </p>
               <span
-                className='px-2 py-0.5 rounded-full text-xs font-medium'
+                className='px-1.5 py-0.5 rounded-full text-xs font-medium'
                 style={{
                   backgroundColor: style.bgColor,
                   color: style.iconColor,
@@ -125,7 +125,7 @@ export const ModernGuardianCard: React.FC<ModernGuardianCardProps> = ({
           {/* Remove button */}
           <motion.button
             onClick={onRemove}
-            className='w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-300'
+            className='w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-300'
             style={{
               backgroundColor: VIBRANT_COLORS.error.light,
               color: VIBRANT_COLORS.vibrantScarlet,
@@ -134,7 +134,7 @@ export const ModernGuardianCard: React.FC<ModernGuardianCardProps> = ({
               scale: 1.1,
               backgroundColor: VIBRANT_COLORS.vibrantScarlet,
               color: VIBRANT_COLORS.pureWhite,
-              boxShadow: '0 4px 15px rgba(255, 77, 77, 0.4)',
+              boxShadow: '0 2px 8px rgba(255, 77, 77, 0.2)',
             }}
             whileTap={{ scale: 0.95 }}
           >

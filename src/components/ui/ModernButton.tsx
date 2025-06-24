@@ -30,9 +30,9 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
 }) => {
   // Size classes
   const sizeClasses = {
-    sm: 'px-4 py-2 text-sm',
-    md: 'px-6 py-3 text-base',
-    lg: 'px-8 py-4 text-lg',
+    sm: 'px-3 py-1.5 text-xs',
+    md: 'px-4 py-2 text-sm',
+    lg: 'px-6 py-3 text-base',
   };
 
   // Base classes
@@ -50,21 +50,21 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
       background: VIBRANT_GRADIENTS.primaryAction,
       color: VIBRANT_COLORS.pureWhite,
       boxShadow: disabled ? 'none' : VIBRANT_SHADOWS.primaryGlow,
-      hoverBoxShadow: '0px 15px 40px rgba(0, 123, 255, 0.5), 0px 8px 20px rgba(94, 0, 255, 0.4)',
+      hoverBoxShadow: '0px 8px 20px rgba(0, 123, 255, 0.25), 0px 4px 10px rgba(94, 0, 255, 0.2)',
       border: undefined,
     },
     secondary: {
       background: VIBRANT_GRADIENTS.successGradient,
       color: VIBRANT_COLORS.pureWhite,
       boxShadow: disabled ? 'none' : VIBRANT_SHADOWS.successGlow,
-      hoverBoxShadow: '0px 12px 30px rgba(0, 230, 118, 0.5), 0px 6px 15px rgba(110, 255, 0, 0.4)',
+      hoverBoxShadow: '0px 6px 15px rgba(0, 230, 118, 0.25), 0px 3px 8px rgba(110, 255, 0, 0.2)',
       border: undefined,
     },
     success: {
       background: VIBRANT_GRADIENTS.ctaOrange,
       color: VIBRANT_COLORS.pureWhite,
       boxShadow: disabled ? 'none' : VIBRANT_SHADOWS.warningGlow,
-      hoverBoxShadow: '0px 12px 30px rgba(255, 127, 0, 0.5), 0px 6px 15px rgba(255, 69, 0, 0.4)',
+      hoverBoxShadow: '0px 6px 15px rgba(255, 127, 0, 0.25), 0px 3px 8px rgba(255, 69, 0, 0.2)',
       border: undefined,
     },
     ghost: {
@@ -119,7 +119,7 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
       <div className="relative flex items-center justify-center gap-2">
         {loading ? (
           <motion.div
-            className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+            className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           />
