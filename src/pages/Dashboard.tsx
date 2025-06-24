@@ -4,10 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { guardianApi } from '../api/guardian';
 import { AnimatedShield } from '../components/ui/AnimatedShield';
-import { ModernButton } from '../components/ui/ModernButton';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { GRADIENTS, MODERN_COLORS, MODERN_TYPOGRAPHY } from '../constants/modern-design-system';
+import { VIBRANT_COLORS, VIBRANT_GRADIENTS, VIBRANT_SHADOWS, VIBRANT_TYPOGRAPHY } from '../constants/vibrant-design-system';
 import { useAuth } from '../contexts/AuthContext';
 
 export const Dashboard: React.FC = () => {
@@ -190,37 +189,73 @@ export const Dashboard: React.FC = () => {
   }
 
 
-  // Show empty state if no guardians (matching welcome screen design)
+  // Show empty state if no guardians (vibrant design)
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className='flex flex-col items-center justify-center h-full text-center px-4 sm:px-6'
+      className='flex flex-col items-center justify-center h-full text-center px-4 sm:px-6 relative overflow-hidden'
       style={{
-        background: GRADIENTS.radialBackgroundBlue,
+        background: VIBRANT_GRADIENTS.cosmicNebula,
       }}
     >
-      {/* Animated Shield */}
+      {/* Animated background particles */}
+      <div className='absolute inset-0 overflow-hidden'>
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className='absolute w-1 h-1 bg-white rounded-full'
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              filter: 'blur(1px)',
+            }}
+            animate={{
+              opacity: [0.2, 1, 0.2],
+              scale: [1, 1.5, 1],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Animated Shield with glow */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.6 }}
-        className='mb-8'
+        className='mb-8 relative'
       >
-        <AnimatedShield size={140} />
+        <div 
+          className='absolute inset-0 blur-xl'
+          style={{
+            background: `radial-gradient(circle, ${VIBRANT_COLORS.glowGreen} 0%, ${VIBRANT_COLORS.electricBlue} 50%, transparent 70%)`,
+            transform: 'scale(1.2)',
+          }}
+        />
+        <AnimatedShield size={160} />
       </motion.div>
 
-      {/* Headline */}
+      {/* Headline with gradient */}
       <motion.h1
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.4, duration: 0.6 }}
-        className='mb-4'
+        className='mb-4 relative'
         style={{
-          fontSize: MODERN_TYPOGRAPHY.sizes['3xl'].size,
-          lineHeight: MODERN_TYPOGRAPHY.sizes['3xl'].lineHeight,
-          fontWeight: MODERN_TYPOGRAPHY.weights.black,
-          color: MODERN_COLORS.neutral[900],
+          fontSize: window.innerWidth < 640 ? VIBRANT_TYPOGRAPHY.sizes.hero.mobile : VIBRANT_TYPOGRAPHY.sizes.hero.size,
+          lineHeight: VIBRANT_TYPOGRAPHY.sizes.hero.lineHeight,
+          fontWeight: VIBRANT_TYPOGRAPHY.weights.black,
+          fontFamily: VIBRANT_TYPOGRAPHY.fonts.display,
+          background: VIBRANT_GRADIENTS.headlineGradient,
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          textShadow: '0 2px 10px rgba(255, 255, 255, 0.2)',
         }}
       >
         Secure Your Wallet with Guardians
@@ -231,36 +266,56 @@ export const Dashboard: React.FC = () => {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className='mb-10 max-w-sm'
+        className='mb-10 max-w-md'
         style={{
-          fontSize: MODERN_TYPOGRAPHY.sizes.lg.size,
-          fontWeight: MODERN_TYPOGRAPHY.weights.medium,
-          color: MODERN_COLORS.neutral[700],
+          fontSize: VIBRANT_TYPOGRAPHY.sizes.title.size,
+          fontWeight: VIBRANT_TYPOGRAPHY.weights.medium,
+          color: VIBRANT_COLORS.softWhite,
+          textShadow: '0 1px 5px rgba(0, 0, 0, 0.3)',
         }}
       >
         Replace complex seed phrases with trusted friends & family
       </motion.p>
 
-      {/* CTA Button */}
+      {/* CTA Button with vibrant gradient */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6, duration: 0.6 }}
-        className='w-full max-w-xs'
+        className='w-full max-w-xs relative'
       >
-        <ModernButton
+        <motion.button
           onClick={() => navigate('/setup')}
-          size='lg'
-          fullWidth
-          variant='primary'
-          icon={
-            <svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 7l5 5m0 0l-5 5m5-5H6' />
-            </svg>
-          }
+          className='w-full px-8 py-4 rounded-xl font-bold text-white relative overflow-hidden transition-all duration-300'
+          style={{
+            background: VIBRANT_GRADIENTS.primaryAction,
+            boxShadow: VIBRANT_SHADOWS.primaryGlow,
+            fontSize: VIBRANT_TYPOGRAPHY.sizes.title.mobile,
+          }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          Start Guardian Setup
-        </ModernButton>
+          <motion.span 
+            className='relative z-10 flex items-center justify-center gap-2'
+            initial={{ x: 0 }}
+            whileHover={{ x: 5 }}
+            transition={{ duration: 0.2 }}
+          >
+            Start Guardian Setup
+            <svg className='w-6 h-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={3} d='M13 7l5 5m0 0l-5 5m5-5H6' />
+            </svg>
+          </motion.span>
+          
+          {/* Hover ripple effect */}
+          <motion.div
+            className='absolute inset-0 opacity-0'
+            style={{
+              background: `radial-gradient(circle, ${VIBRANT_COLORS.electricIndigo} 0%, transparent 70%)`,
+            }}
+            whileHover={{ opacity: 0.3 }}
+          />
+        </motion.button>
       </motion.div>
 
       {/* User email - subtle placement */}
@@ -271,7 +326,8 @@ export const Dashboard: React.FC = () => {
           transition={{ delay: 0.8, duration: 0.6 }}
           className='mt-8 text-sm'
           style={{
-            color: MODERN_COLORS.neutral[500],
+            color: VIBRANT_COLORS.softWhite,
+            opacity: 0.7,
           }}
         >
           {email}

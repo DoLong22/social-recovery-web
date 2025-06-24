@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
+import { VIBRANT_GRADIENTS, VIBRANT_SHADOWS } from '../../constants/vibrant-design-system';
 
 interface GuardianProgressSlotsProps {
   current: number;
@@ -33,14 +34,15 @@ export const GuardianProgressSlots: React.FC<GuardianProgressSlotsProps> = ({
           >
             <div
               className={`
-                w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300
-                ${isFilled(index) 
-                  ? 'bg-primary-500 text-white shadow-sm' 
-                  : isRequired(index)
-                    ? 'bg-gray-200 border-2 border-gray-300'
-                    : 'bg-gray-100 border-2 border-dashed border-gray-300'
-                }
+                w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 relative overflow-hidden
               `}
+              style={{
+                background: isFilled(index) 
+                  ? VIBRANT_GRADIENTS.successGradient
+                  : 'rgba(255, 255, 255, 0.7)',
+                border: isFilled(index) ? 'none' : isRequired(index) ? '2px solid #CCDDEE' : '2px dashed #CCDDEE',
+                boxShadow: isFilled(index) ? VIBRANT_SHADOWS.greenGlow : 'none',
+              }}
             >
               {isFilled(index) ? (
                 <Check className="w-5 h-5" />

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, AlertCircle, Info, Users, Lock, ExternalLink, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Shield, Users, Lock, ExternalLink, CheckCircle, AlertTriangle } from 'lucide-react';
 import { HelpTooltip } from './HelpTooltip';
 import { EXTERNAL_LINKS } from '../../constants/links';
-import { MODERN_COLORS, GRADIENTS, SHADOWS, MODERN_TYPOGRAPHY } from '../../constants/modern-design-system';
+import { MODERN_COLORS, GRADIENTS } from '../../constants/modern-design-system';
+import { VIBRANT_COLORS, VIBRANT_GRADIENTS, VIBRANT_SHADOWS, VIBRANT_TYPOGRAPHY } from '../../constants/vibrant-design-system';
 
 interface ThresholdOption {
   id: string;
@@ -89,10 +90,10 @@ export const EnhancedThresholdSelector: React.FC<EnhancedThresholdSelectorProps>
 
       {/* Visual Threshold Representation */}
       <motion.div 
-        className="rounded-2xl p-6 mb-6"
+        className="rounded-2xl p-6 mb-6 relative overflow-hidden"
         style={{
-          background: GRADIENTS.radialBackground,
-          boxShadow: SHADOWS.cardSoft,
+          background: VIBRANT_GRADIENTS.modalHeader,
+          boxShadow: VIBRANT_SHADOWS.cardFloat,
         }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -107,11 +108,17 @@ export const EnhancedThresholdSelector: React.FC<EnhancedThresholdSelectorProps>
       {/* Current Selection Display */}
       <motion.div
         layoutId="selected-threshold"
-        className="rounded-2xl p-6 mb-6"
+        className="rounded-2xl p-6 mb-6 relative overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, ${MODERN_COLORS.primary[50]} 0%, ${MODERN_COLORS.primary[100]} 100%)`,
-          border: `2px solid ${MODERN_COLORS.primary[500]}`,
-          boxShadow: SHADOWS.cardMedium,
+          background: selectedOption?.id === 'recommended' 
+            ? `linear-gradient(135deg, ${VIBRANT_COLORS.success.light} 0%, ${VIBRANT_COLORS.info.light} 100%)`
+            : `linear-gradient(135deg, ${VIBRANT_COLORS.warning.light} 0%, rgba(255, 248, 225, 0.8) 100%)`,
+          border: selectedOption?.id === 'recommended'
+            ? `2px solid ${VIBRANT_COLORS.glowGreen}`
+            : `2px solid ${VIBRANT_COLORS.radiantOrange}`,
+          boxShadow: selectedOption?.id === 'recommended'
+            ? VIBRANT_SHADOWS.greenGlow
+            : VIBRANT_SHADOWS.orangeGlow,
         }}
         whileHover={{ scale: 1.02 }}
         transition={{ duration: 0.2 }}
@@ -120,13 +127,16 @@ export const EnhancedThresholdSelector: React.FC<EnhancedThresholdSelectorProps>
           <div>
             <div className="flex items-center gap-3 mb-2">
               <motion.div 
-                className="text-3xl font-bold"
+                className="text-3xl font-black"
                 style={{ 
-                  color: MODERN_COLORS.primary[700],
-                  background: GRADIENTS.primaryButton,
+                  fontFamily: VIBRANT_TYPOGRAPHY.fonts.display,
+                  background: selectedOption?.id === 'recommended'
+                    ? VIBRANT_GRADIENTS.successGradient
+                    : VIBRANT_GRADIENTS.walletType,
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
                 }}
                 whileHover={{ scale: 1.05 }}
               >
@@ -134,10 +144,11 @@ export const EnhancedThresholdSelector: React.FC<EnhancedThresholdSelectorProps>
               </motion.div>
               {selectedOption?.isRecommended && (
                 <motion.span 
-                  className="px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1"
+                  className="px-3 py-1 text-xs font-bold rounded-full flex items-center gap-1"
                   style={{
-                    backgroundColor: MODERN_COLORS.accent.green[100],
-                    color: MODERN_COLORS.accent.green[700],
+                    background: VIBRANT_COLORS.electricLime,
+                    color: VIBRANT_COLORS.success.dark,
+                    boxShadow: '0 2px 8px rgba(110, 255, 0, 0.5)',
                   }}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -274,11 +285,17 @@ const ThresholdOptionCard: React.FC<{
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
       onClick={onSelect}
-      className="relative border-2 rounded-2xl p-5 cursor-pointer transition-all"
+      className="relative border-2 rounded-2xl p-5 cursor-pointer transition-all duration-300"
       style={{
-        borderColor: isSelected ? MODERN_COLORS.primary[500] : MODERN_COLORS.neutral[200],
-        backgroundColor: isSelected ? MODERN_COLORS.primary[50] : MODERN_COLORS.background.primary,
-        boxShadow: isSelected ? SHADOWS.cardMedium : SHADOWS.cardSoft,
+        borderColor: isSelected 
+          ? option.id === 'recommended' ? VIBRANT_COLORS.glowGreen : VIBRANT_COLORS.radiantOrange
+          : '#CCDDEE',
+        backgroundColor: isSelected 
+          ? option.id === 'recommended' ? 'rgba(57, 255, 20, 0.05)' : 'rgba(255, 127, 0, 0.05)'
+          : 'rgba(255, 255, 255, 0.8)',
+        boxShadow: isSelected 
+          ? option.id === 'recommended' ? VIBRANT_SHADOWS.greenGlow : VIBRANT_SHADOWS.orangeGlow
+          : VIBRANT_SHADOWS.cardFloat,
       }}
     >
       <div className="flex items-start gap-3">
@@ -293,9 +310,11 @@ const ThresholdOptionCard: React.FC<{
             <motion.div
               className="w-10 h-10 rounded-xl flex items-center justify-center"
               style={{
-                background: isSelected ? GRADIENTS.primaryButton : MODERN_COLORS.neutral[100],
+                background: isSelected 
+                  ? option.id === 'recommended' ? VIBRANT_GRADIENTS.successGradient : VIBRANT_GRADIENTS.walletType
+                  : 'rgba(220, 220, 220, 0.5)',
               }}
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.1, rotate: 5 }}
             >
               <div className={isSelected ? 'text-white' : 'text-gray-600'}>
                 {option.icon}
@@ -335,15 +354,18 @@ const ThresholdOptionCard: React.FC<{
           {/* Pros and Cons */}
           <div className="grid grid-cols-2 gap-4 mt-4">
             <motion.div
-              className="p-3 rounded-lg"
-              style={{ backgroundColor: MODERN_COLORS.accent.green[50] }}
+              className="p-3 rounded-lg border"
+              style={{ 
+                backgroundColor: VIBRANT_COLORS.success.light,
+                borderColor: VIBRANT_COLORS.success.main,
+              }}
               whileHover={{ scale: 1.02 }}
             >
               <p 
-                className="text-xs font-semibold mb-2 flex items-center gap-1"
-                style={{ color: MODERN_COLORS.accent.green[700] }}
+                className="text-xs font-bold mb-2 flex items-center gap-1"
+                style={{ color: VIBRANT_COLORS.success.dark }}
               >
-                <CheckCircle className="w-3 h-3" />
+                <CheckCircle className="w-4 h-4" />
                 Pros:
               </p>
               <ul className="text-xs space-y-1" style={{ color: MODERN_COLORS.neutral[600] }}>
@@ -365,15 +387,18 @@ const ThresholdOptionCard: React.FC<{
               </ul>
             </motion.div>
             <motion.div
-              className="p-3 rounded-lg"
-              style={{ backgroundColor: MODERN_COLORS.semantic.error + '10' }}
+              className="p-3 rounded-lg border"
+              style={{ 
+                backgroundColor: VIBRANT_COLORS.error.light,
+                borderColor: VIBRANT_COLORS.error.main,
+              }}
               whileHover={{ scale: 1.02 }}
             >
               <p 
-                className="text-xs font-semibold mb-2 flex items-center gap-1"
-                style={{ color: MODERN_COLORS.semantic.error }}
+                className="text-xs font-bold mb-2 flex items-center gap-1"
+                style={{ color: VIBRANT_COLORS.error.dark }}
               >
-                <AlertTriangle className="w-3 h-3" />
+                <AlertTriangle className="w-4 h-4" />
                 Cons:
               </p>
               <ul className="text-xs space-y-1" style={{ color: MODERN_COLORS.neutral[600] }}>
@@ -419,20 +444,23 @@ const ThresholdVisualizer: React.FC<{
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: i * 0.05 }}
             className={`
-              w-12 h-12 rounded-full flex items-center justify-center
-              ${i < threshold 
-                ? 'bg-blue-500 text-white' 
-                : 'bg-gray-200 text-gray-500'
-              }
+              w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
             `}
+            style={{
+              background: i < threshold 
+                ? VIBRANT_GRADIENTS.primaryAction
+                : 'rgba(200, 200, 200, 0.3)',
+              border: i < threshold ? 'none' : '2px solid #CCDDEE',
+              boxShadow: i < threshold ? VIBRANT_SHADOWS.blueGlow : 'none',
+            }}
           >
             <Users className="w-6 h-6" />
           </motion.div>
         ))}
       </div>
-      <p className="text-sm text-gray-600">
-        <span className="font-medium text-blue-600">{threshold}</span> out of{' '}
-        <span className="font-medium">{total}</span> guardians needed for recovery
+      <p className="text-sm" style={{ color: VIBRANT_COLORS.darkCarbon }}>
+        <span className="font-bold" style={{ color: VIBRANT_COLORS.electricBlue }}>{threshold}</span> out of{' '}
+        <span className="font-bold" style={{ color: VIBRANT_COLORS.darkCarbon }}>{total}</span> guardians needed for recovery
       </p>
     </div>
   );
@@ -454,10 +482,10 @@ const DynamicInfoBox: React.FC<{
       className="rounded-2xl p-5"
       style={{
         background: isMaximum 
-          ? `linear-gradient(135deg, ${MODERN_COLORS.accent.orange[50]} 0%, ${MODERN_COLORS.accent.orange[100]} 100%)`
-          : `linear-gradient(135deg, ${MODERN_COLORS.accent.green[50]} 0%, ${MODERN_COLORS.accent.green[100]} 100%)`,
-        border: `1px solid ${isMaximum ? MODERN_COLORS.accent.orange[200] : MODERN_COLORS.accent.green[200]}`,
-        boxShadow: SHADOWS.cardSoft,
+          ? `linear-gradient(135deg, ${VIBRANT_COLORS.warning.light} 0%, rgba(255, 248, 225, 0.8) 100%)`
+          : `linear-gradient(135deg, ${VIBRANT_COLORS.info.light} 0%, rgba(224, 255, 255, 0.8) 100%)`,
+        border: `2px solid ${isMaximum ? VIBRANT_COLORS.radiantOrange : VIBRANT_COLORS.electricTeal}`,
+        boxShadow: isMaximum ? VIBRANT_SHADOWS.orangeGlow : VIBRANT_SHADOWS.blueGlow,
       }}
       whileHover={{ scale: 1.02 }}
     >
@@ -466,8 +494,8 @@ const DynamicInfoBox: React.FC<{
           className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{
             background: isMaximum 
-              ? GRADIENTS.orangeButton
-              : GRADIENTS.greenButton,
+              ? VIBRANT_GRADIENTS.walletType
+              : VIBRANT_GRADIENTS.successGradient,
           }}
           whileHover={{ scale: 1.1, rotate: 5 }}
         >

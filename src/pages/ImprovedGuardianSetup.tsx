@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -7,11 +7,9 @@ import type { CreateSetupSessionDto } from '../api/guardian';
 import { useToast } from '../contexts/ToastContext';
 import { Button } from '../components/ui/Button';
 import { ModernButton } from '../components/ui/ModernButton';
-import { AnimatedShield } from '../components/ui/AnimatedShield';
-import { Card } from '../components/ui/Card';
 import { ProgressBar, StepDots } from '../components/ui/ProgressBar';
-import { COLORS } from '../constants/design-system';
-import { GRADIENTS, MODERN_COLORS, SHADOWS, MODERN_TYPOGRAPHY } from '../constants/modern-design-system';
+import { GRADIENTS } from '../constants/modern-design-system';
+import { VIBRANT_COLORS, VIBRANT_GRADIENTS, VIBRANT_SHADOWS } from '../constants/vibrant-design-system';
 import { useAuth } from '../contexts/AuthContext';
 import { EnhancedThresholdSelector } from '../components/ui/EnhancedThresholdSelector';
 import { EnhancedReviewSetup } from '../components/ui/EnhancedReviewSetup';
@@ -21,7 +19,7 @@ import { ModernGuardianTypeSelector } from '../components/ui/ModernGuardianTypeS
 import { ModernGuardianCard } from '../components/ui/ModernGuardianCard';
 import { HelpTooltip } from '../components/ui/HelpTooltip';
 import { validateEmail, validatePhoneNumber, validateWalletAddress, formatPhoneNumber } from '../utils/validation';
-import { Mail, Phone, Wallet, Shield, AlertCircle } from 'lucide-react';
+import { Shield, AlertCircle } from 'lucide-react';
 
 interface Guardian {
   type: GuardianType;
@@ -39,7 +37,7 @@ const AUTO_INJECT_EMAILS = [
 export const ImprovedGuardianSetup: React.FC = () => {
   const navigate = useNavigate();
   const { showError } = useToast();
-  const { email } = useAuth();
+  const { } = useAuth();
   const { triggerSuccess, SuccessComponent } = useSuccessAnimation();
   // Start directly with Add Guardians step (skip welcome)
   const [currentStep, setCurrentStep] = useState(1); // Start with Add Guardians
@@ -95,7 +93,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
     }
     
     // Validate contact info based on type
-    let validation = { valid: false, error: '' };
+    let validation: { valid: boolean; error?: string };
     switch (newGuardian.type) {
       case GuardianType.EMAIL:
         validation = validateEmail(newGuardian.contactInfo);
@@ -106,6 +104,8 @@ export const ImprovedGuardianSetup: React.FC = () => {
       case GuardianType.WALLET:
         validation = validateWalletAddress(newGuardian.contactInfo);
         break;
+      default:
+        validation = { valid: false, error: 'Invalid guardian type' };
     }
     
     if (!validation.valid) {
@@ -275,7 +275,18 @@ export const ImprovedGuardianSetup: React.FC = () => {
                             name: e.target.value,
                           })
                         }
-                        className='w-full px-4 py-3 pr-24 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                        className='w-full px-4 py-3 pr-24 border-2 border-gray-200 rounded-xl transition-all duration-300 bg-white/80'
+                        style={{
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = VIBRANT_COLORS.electricBlue;
+                          e.target.style.boxShadow = VIBRANT_SHADOWS.blueGlow;
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#E5E7EB';
+                          e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+                        }}
                         placeholder='Guardian Name'
                         autoFocus
                       />
@@ -334,9 +345,24 @@ export const ImprovedGuardianSetup: React.FC = () => {
                           });
                           setValidationError('');
                         }}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          validationError ? 'border-red-300' : 'border-gray-300'
+                        className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-300 bg-white/80 ${
+                          validationError ? 'border-red-400' : 'border-gray-200'
                         }`}
+                        style={{
+                          boxShadow: validationError ? VIBRANT_SHADOWS.orangeGlow : '0 2px 8px rgba(0, 0, 0, 0.05)',
+                        }}
+                        onFocus={(e) => {
+                          if (!validationError) {
+                            e.target.style.borderColor = VIBRANT_COLORS.electricBlue;
+                            e.target.style.boxShadow = VIBRANT_SHADOWS.blueGlow;
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (!validationError) {
+                            e.target.style.borderColor = '#E5E7EB';
+                            e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+                          }
+                        }}
                         placeholder={getContactPlaceholder(newGuardian.type)}
                       />
                       {validationError && (
@@ -507,10 +533,10 @@ export const ImprovedGuardianSetup: React.FC = () => {
   ];
 
   return (
-    <div className='h-full flex flex-col bg-white'>
+    <div className='h-full flex flex-col bg-gradient-to-b from-gray-50 to-white'>
       {/* Clean Progress Header with Close */}
       {(
-        <div className='px-4 py-2 bg-white/95 backdrop-blur-sm sticky top-0 z-30 border-b border-gray-100 relative'>
+        <div className='px-4 py-2 sticky top-0 z-30 border-b border-gray-100 relative' style={{ background: VIBRANT_GRADIENTS.modalHeader }}>
           {/* Close button - top right */}
           <button
             onClick={() => navigate('/dashboard')}
@@ -541,10 +567,10 @@ export const ImprovedGuardianSetup: React.FC = () => {
                 transition={{ duration: 0.2 }}
               >
                 <h1 className='flex items-baseline justify-center gap-1.5 flex-wrap'>
-                  <span className='text-sm font-semibold text-primary-500'>
+                  <span className='text-sm font-bold' style={{ color: VIBRANT_COLORS.electricTeal }}>
                     Step {currentStep}:
                   </span>
-                  <span className='text-base font-bold text-gray-900'>
+                  <span className='text-xl font-black' style={{ color: VIBRANT_COLORS.darkCarbon }}>
                     {stepTitles[currentStep - 1].purpose}
                   </span>
                 </h1>

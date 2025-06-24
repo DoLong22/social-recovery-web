@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, User, Shield, Menu, X, Home, ClipboardList } from 'lucide-react';
-import { COLORS } from '../constants/design-system';
+import { LogOut, User, Shield, X, Home, ClipboardList } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;

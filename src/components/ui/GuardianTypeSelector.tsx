@@ -64,7 +64,6 @@ export const GuardianTypeSelector: React.FC<GuardianTypeSelectorProps> = ({
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   
-  const allTypes = [...GUARDIAN_TYPES, ...(showAdvanced ? ADVANCED_GUARDIAN_TYPES : [])];
   const selectedTypeInfo = [...GUARDIAN_TYPES, ...ADVANCED_GUARDIAN_TYPES].find(t => t.value === selectedType);
 
   return (

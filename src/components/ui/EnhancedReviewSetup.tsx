@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, Wallet, Shield, CheckCircle, Info, AlertCircle, ChevronRight, Lock, Sparkles, Send, Eye } from 'lucide-react';
+import { Mail, Phone, Wallet, Shield, CheckCircle, Info, AlertCircle, ChevronRight, Lock, Sparkles, Send } from 'lucide-react';
 import { GuardianType } from '../../api/guardian';
-import { Card } from './Card';
 import { ModernButton } from './ModernButton';
-import { HelpTooltip } from './HelpTooltip';
-import { MODERN_COLORS, GRADIENTS, SHADOWS, MODERN_TYPOGRAPHY } from '../../constants/modern-design-system';
+import { MODERN_COLORS, GRADIENTS } from '../../constants/modern-design-system';
+import { VIBRANT_COLORS, VIBRANT_GRADIENTS, VIBRANT_SHADOWS, VIBRANT_TYPOGRAPHY } from '../../constants/vibrant-design-system';
 
 interface Guardian {
   type: GuardianType;
@@ -44,33 +43,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
     }
   };
 
-  // Helper to get guardian icon
-  const getGuardianIcon = (type: GuardianType) => {
-    switch (type) {
-      case GuardianType.EMAIL:
-        return <Mail className="w-5 h-5 text-blue-600" />;
-      case GuardianType.PHONE:
-        return <Phone className="w-5 h-5 text-green-600" />;
-      case GuardianType.WALLET:
-        return <Wallet className="w-5 h-5 text-purple-600" />;
-      default:
-        return <Shield className="w-5 h-5 text-gray-600" />;
-    }
-  };
 
-  // Helper to get guardian icon background
-  const getGuardianIconBg = (type: GuardianType): string => {
-    switch (type) {
-      case GuardianType.EMAIL:
-        return 'bg-blue-100';
-      case GuardianType.PHONE:
-        return 'bg-green-100';
-      case GuardianType.WALLET:
-        return 'bg-purple-100';
-      default:
-        return 'bg-gray-100';
-    }
-  };
 
   // Helper to get guardian styling
   const getGuardianStyle = (type: GuardianType) => {
@@ -78,23 +51,26 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
       case GuardianType.EMAIL:
         return {
           icon: Mail,
-          gradient: 'linear-gradient(135deg, #3A86FF 0%, #2E6FCC 100%)',
-          bgColor: MODERN_COLORS.primary[100],
-          iconColor: MODERN_COLORS.primary[600],
+          gradient: VIBRANT_GRADIENTS.emailType,
+          bgColor: 'rgba(0, 163, 255, 0.1)',
+          iconColor: VIBRANT_COLORS.electricBlue,
+          shadow: VIBRANT_SHADOWS.blueGlow,
         };
       case GuardianType.PHONE:
         return {
           icon: Phone,
-          gradient: 'linear-gradient(135deg, #3CCF4E 0%, #30A63E 100%)',
-          bgColor: MODERN_COLORS.accent.green[100],
-          iconColor: MODERN_COLORS.accent.green[600],
+          gradient: VIBRANT_GRADIENTS.phoneType,
+          bgColor: 'rgba(0, 230, 118, 0.1)',
+          iconColor: VIBRANT_COLORS.vibrantEmerald,
+          shadow: VIBRANT_SHADOWS.greenGlow,
         };
       case GuardianType.WALLET:
         return {
           icon: Wallet,
-          gradient: 'linear-gradient(135deg, #8E44AD 0%, #7236A6 100%)',
-          bgColor: MODERN_COLORS.accent.purple[100],
-          iconColor: MODERN_COLORS.accent.purple[600],
+          gradient: VIBRANT_GRADIENTS.walletType,
+          bgColor: 'rgba(255, 127, 0, 0.1)',
+          iconColor: VIBRANT_COLORS.radiantOrange,
+          shadow: VIBRANT_SHADOWS.orangeGlow,
         };
       default:
         return {
@@ -115,17 +91,33 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Sparkles className="w-5 h-5" style={{ color: MODERN_COLORS.primary[500] }} />
-          <p 
-            className="text-lg font-semibold"
-            style={{ color: MODERN_COLORS.neutral[900] }}
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <motion.div
+            animate={{ rotate: [0, 15, -15, 0] }}
+            transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+          >
+            <Sparkles className="w-6 h-6" style={{ color: VIBRANT_COLORS.radiantOrange }} />
+          </motion.div>
+          <motion.p 
+            className="text-2xl font-black"
+            style={{ 
+              fontFamily: VIBRANT_TYPOGRAPHY.fonts.display,
+              background: VIBRANT_GRADIENTS.ctaOrange,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
           >
             You're almost done!
-          </p>
-          <Sparkles className="w-5 h-5" style={{ color: MODERN_COLORS.primary[500] }} />
+          </motion.p>
+          <motion.div
+            animate={{ rotate: [0, -15, 15, 0] }}
+            transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+          >
+            <Sparkles className="w-6 h-6" style={{ color: VIBRANT_COLORS.radiantOrange }} />
+          </motion.div>
         </div>
-        <p style={{ color: MODERN_COLORS.neutral[600] }}>
+        <p style={{ color: VIBRANT_COLORS.darkCarbon, fontSize: VIBRANT_TYPOGRAPHY.sizes.body.size }}>
           Confirm your guardians before sending invitations
         </p>
       </motion.div>
@@ -155,11 +147,12 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
               transition={{ delay: 0.3 + index * 0.1 }}
             >
               <motion.div
-                className="relative bg-white rounded-2xl p-5 border border-gray-200"
-                style={{ boxShadow: SHADOWS.cardSoft }}
+                className="relative bg-white rounded-2xl p-5 border-2 border-gray-100 transition-all duration-300"
+                style={{ boxShadow: VIBRANT_SHADOWS.cardFloat }}
                 whileHover={{ 
-                  boxShadow: SHADOWS.cardHover,
+                  boxShadow: style.shadow,
                   scale: 1.02,
+                  borderColor: style.iconColor,
                 }}
               >
                 {/* Gradient overlay */}
@@ -216,7 +209,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
                   {/* Status indicator */}
                   <motion.div
                     className="w-8 h-8 rounded-full flex items-center justify-center"
-                    style={{ background: GRADIENTS.greenButton }}
+                    style={{ background: VIBRANT_GRADIENTS.successGradient }}
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.6 + index * 0.1, type: 'spring' }}
@@ -239,11 +232,11 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
         <motion.div
           className="rounded-2xl p-6 relative overflow-hidden"
           style={{
-            background: `linear-gradient(135deg, ${MODERN_COLORS.accent.green[50]} 0%, ${MODERN_COLORS.accent.green[100]} 100%)`,
-            border: `2px solid ${MODERN_COLORS.accent.green[300]}`,
-            boxShadow: SHADOWS.cardMedium,
+            background: VIBRANT_GRADIENTS.successGradient,
+            border: 'none',
+            boxShadow: VIBRANT_SHADOWS.successGlow,
           }}
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.02, boxShadow: '0px 15px 40px rgba(0, 230, 118, 0.5), 0px 8px 20px rgba(110, 255, 0, 0.4)' }}
         >
           {/* Animated background pattern */}
           <div className="absolute inset-0 opacity-10">
@@ -259,7 +252,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
           <div className="relative flex items-start gap-4">
             <motion.div
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
-              style={{ background: GRADIENTS.greenButton }}
+              style={{ background: 'rgba(255, 255, 255, 0.2)', backdropFilter: 'blur(10px)' }}
               whileHover={{ scale: 1.1, rotate: 360 }}
               transition={{ duration: 0.5 }}
             >
@@ -269,7 +262,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
             <div className="flex-1">
               <motion.p 
                 className="font-bold text-xl mb-2"
-                style={{ color: MODERN_COLORS.accent.green[900] }}
+                style={{ color: VIBRANT_COLORS.pureWhite, textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
@@ -279,7 +272,7 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
               
               <motion.p 
                 className="text-sm font-medium mb-4"
-                style={{ color: MODERN_COLORS.accent.green[800] }}
+                style={{ color: VIBRANT_COLORS.pureWhite, opacity: 0.9 }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7 }}
@@ -291,8 +284,9 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
               <motion.div
                 className="p-4 rounded-xl"
                 style={{
-                  backgroundColor: MODERN_COLORS.accent.green[200] + '50',
-                  border: `1px solid ${MODERN_COLORS.accent.green[300]}`,
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  backdropFilter: 'blur(10px)',
                 }}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -308,14 +302,14 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
                   </motion.div>
                   <div>
                     <p 
-                      className="text-xs font-semibold mb-1"
-                      style={{ color: MODERN_COLORS.accent.green[800] }}
+                      className="text-xs font-bold mb-1"
+                      style={{ color: VIBRANT_COLORS.pureWhite }}
                     >
                       100% Secure & Private
                     </p>
                     <p 
                       className="text-xs leading-relaxed"
-                      style={{ color: MODERN_COLORS.accent.green[700] }}
+                      style={{ color: VIBRANT_COLORS.pureWhite, opacity: 0.9 }}
                     >
                       Guardians only receive encrypted shares, never your actual wallet key
                     </p>
@@ -335,7 +329,8 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
       >
         <button
           onClick={() => setShowWhatHappensNext(!showWhatHappensNext)}
-          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+          className="flex items-center gap-2 text-sm transition-all duration-300"
+          style={{ color: VIBRANT_COLORS.electricBlue }}
         >
           <Info className="w-4 h-4" />
           <span>What happens next?</span>
@@ -346,10 +341,14 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="mt-3 bg-blue-50 rounded-lg p-4"
+            className="mt-3 rounded-xl p-5"
+            style={{
+              background: `linear-gradient(135deg, ${VIBRANT_COLORS.info.light} 0%, rgba(224, 255, 255, 0.6) 100%)`,
+              border: `1px solid ${VIBRANT_COLORS.electricTeal}`,
+            }}
           >
-            <h4 className="font-medium text-blue-900 mb-2">Next Steps</h4>
-            <ol className="space-y-2 text-sm text-blue-800">
+            <h4 className="font-bold mb-3" style={{ color: VIBRANT_COLORS.electricTeal }}>Next Steps</h4>
+            <ol className="space-y-2 text-sm" style={{ color: VIBRANT_COLORS.darkCarbon }}>
               <li className="flex items-start gap-2">
                 <span className="font-medium">1.</span>
                 <span>We'll send an invitation to each guardian via their preferred method</span>
@@ -368,9 +367,9 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
               </li>
             </ol>
             
-            <div className="mt-3 pt-3 border-t border-blue-200">
-              <p className="text-xs text-blue-700 flex items-start gap-1">
-                <AlertCircle className="w-3 h-3 mt-0.5" />
+            <div className="mt-4 pt-4 border-t" style={{ borderColor: VIBRANT_COLORS.electricTeal + '40' }}>
+              <p className="text-xs flex items-start gap-2" style={{ color: VIBRANT_COLORS.info.dark }}>
+                <AlertCircle className="w-4 h-4 mt-0.5" style={{ color: VIBRANT_COLORS.electricTeal }} />
                 If a guardian doesn't accept within 48 hours, you can resend or replace them
               </p>
             </div>
@@ -379,23 +378,33 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
       </motion.div>
 
       {/* Progress Indicator */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">Setup Progress</span>
-          <span className="text-sm text-gray-600">Step 3 of 3</span>
+      <motion.div 
+        className="rounded-2xl p-5"
+        style={{
+          background: VIBRANT_GRADIENTS.lightBackground,
+          border: '1px solid rgba(0, 0, 0, 0.05)',
+        }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-bold" style={{ color: VIBRANT_COLORS.darkCarbon }}>Setup Progress</span>
+          <span className="text-sm font-semibold" style={{ color: VIBRANT_COLORS.electricLime }}>Step 3 of 3</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
           <motion.div
             initial={{ width: '66%' }}
             animate={{ width: '100%' }}
-            transition={{ duration: 0.5 }}
-            className="bg-green-500 h-2 rounded-full"
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="h-3 rounded-full"
+            style={{ background: VIBRANT_GRADIENTS.successGradient }}
           />
         </div>
-        <p className="text-xs text-gray-600 mt-2">
-          Ready to send invitations!
+        <p className="text-xs font-medium mt-3" style={{ color: VIBRANT_COLORS.vibrantEmerald }}>
+          ✨ Ready to send invitations!
         </p>
-      </div>
+      </motion.div>
 
       {/* Action Buttons */}
       <motion.div 
@@ -409,15 +418,20 @@ export const EnhancedReviewSetup: React.FC<EnhancedReviewSetupProps> = ({
           loading={isSubmitting}
           fullWidth
           size="lg"
-          variant="primary"
+          variant="success"
           disabled={isSubmitting}
           icon={
             !isSubmitting ? (
-              <Send className="w-5 h-5" />
+              <motion.div
+                animate={{ x: [0, 3, 0] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                <Send className="w-5 h-5" />
+              </motion.div>
             ) : undefined
           }
         >
-          {isSubmitting ? 'Sending Invitations...' : 'Send Invitations'}
+          {isSubmitting ? 'Sending Invitations...' : '🚀 Send Invitations'}
         </ModernButton>
 
         <ModernButton

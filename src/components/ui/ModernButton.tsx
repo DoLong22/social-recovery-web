@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { GRADIENTS, SHADOWS, MODERN_COLORS, ANIMATIONS } from '../../constants/modern-design-system';
+import { ANIMATIONS } from '../../constants/modern-design-system';
+import { VIBRANT_COLORS, VIBRANT_GRADIENTS, VIBRANT_SHADOWS } from '../../constants/vibrant-design-system';
 
 interface ModernButtonProps {
   children: React.ReactNode;
@@ -46,29 +47,32 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
   // Variant styles
   const variantStyles = {
     primary: {
-      background: GRADIENTS.primaryButton,
-      color: MODERN_COLORS.neutral[50],
-      boxShadow: disabled ? 'none' : SHADOWS.buttonPrimary,
-      hoverBoxShadow: SHADOWS.buttonPrimaryHover,
+      background: VIBRANT_GRADIENTS.primaryAction,
+      color: VIBRANT_COLORS.pureWhite,
+      boxShadow: disabled ? 'none' : VIBRANT_SHADOWS.primaryGlow,
+      hoverBoxShadow: '0px 15px 40px rgba(0, 123, 255, 0.5), 0px 8px 20px rgba(94, 0, 255, 0.4)',
+      border: undefined,
     },
     secondary: {
-      background: GRADIENTS.greenButton,
-      color: MODERN_COLORS.neutral[50],
-      boxShadow: disabled ? 'none' : '0px 8px 15px rgba(60, 207, 78, 0.3)',
-      hoverBoxShadow: '0px 12px 20px rgba(60, 207, 78, 0.4)',
+      background: VIBRANT_GRADIENTS.successGradient,
+      color: VIBRANT_COLORS.pureWhite,
+      boxShadow: disabled ? 'none' : VIBRANT_SHADOWS.successGlow,
+      hoverBoxShadow: '0px 12px 30px rgba(0, 230, 118, 0.5), 0px 6px 15px rgba(110, 255, 0, 0.4)',
+      border: undefined,
     },
     success: {
-      background: GRADIENTS.greenButton,
-      color: MODERN_COLORS.neutral[50],
-      boxShadow: disabled ? 'none' : '0px 8px 15px rgba(60, 207, 78, 0.3)',
-      hoverBoxShadow: '0px 12px 20px rgba(60, 207, 78, 0.4)',
+      background: VIBRANT_GRADIENTS.ctaOrange,
+      color: VIBRANT_COLORS.pureWhite,
+      boxShadow: disabled ? 'none' : VIBRANT_SHADOWS.warningGlow,
+      hoverBoxShadow: '0px 12px 30px rgba(255, 127, 0, 0.5), 0px 6px 15px rgba(255, 69, 0, 0.4)',
+      border: undefined,
     },
     ghost: {
       background: 'transparent',
-      color: MODERN_COLORS.primary[600],
+      color: VIBRANT_COLORS.electricBlue,
       boxShadow: 'none',
       hoverBoxShadow: 'none',
-      border: `2px solid ${MODERN_COLORS.primary[600]}`,
+      border: `2px solid ${VIBRANT_COLORS.electricBlue}`,
     },
   };
 
@@ -108,7 +112,7 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
           background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%)',
         }}
         whileHover={{ opacity: 1 }}
-        transition={{ duration: ANIMATIONS.fast }}
+        transition={{ duration: 0.15 }}
       />
 
       {/* Button content */}

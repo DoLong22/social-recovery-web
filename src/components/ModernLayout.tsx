@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { LogOut, User, Shield, ChevronDown, Home, ClipboardList } from 'lucide-react';
-import { COLORS } from '../constants/design-system';
 
 interface LayoutProps {
   children: React.ReactNode;

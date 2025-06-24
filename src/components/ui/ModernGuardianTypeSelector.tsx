@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Phone, Wallet, Smartphone, Printer, Building2, ChevronDown } from 'lucide-react';
 import { GuardianType } from '../../api/guardian';
-import { MODERN_COLORS, GRADIENTS, SHADOWS } from '../../constants/modern-design-system';
+import { MODERN_COLORS } from '../../constants/modern-design-system';
+import { VIBRANT_COLORS, VIBRANT_GRADIENTS, VIBRANT_SHADOWS } from '../../constants/vibrant-design-system';
 
 interface GuardianTypeOption {
   value: GuardianType;
@@ -26,27 +27,27 @@ const GUARDIAN_TYPES: GuardianTypeOption[] = [
     label: 'Email',
     icon: Mail,
     description: 'Send recovery link via email',
-    gradient: 'linear-gradient(135deg, #3A86FF 0%, #2E6FCC 100%)',
-    iconColor: MODERN_COLORS.primary[600],
-    bgColor: MODERN_COLORS.primary[50],
+    gradient: VIBRANT_GRADIENTS.emailType,
+    iconColor: VIBRANT_COLORS.electricBlue,
+    bgColor: 'rgba(0, 163, 255, 0.1)',
   },
   {
     value: GuardianType.PHONE,
     label: 'Phone',
     icon: Phone,
     description: 'Send SMS verification code',
-    gradient: 'linear-gradient(135deg, #3CCF4E 0%, #30A63E 100%)',
-    iconColor: MODERN_COLORS.accent.green[600],
-    bgColor: MODERN_COLORS.accent.green[50],
+    gradient: VIBRANT_GRADIENTS.phoneType,
+    iconColor: VIBRANT_COLORS.vibrantEmerald,
+    bgColor: 'rgba(0, 230, 118, 0.1)',
   },
   {
     value: GuardianType.WALLET,
     label: 'Wallet',
     icon: Wallet,
     description: 'Connect with wallet address',
-    gradient: 'linear-gradient(135deg, #8E44AD 0%, #7236A6 100%)',
-    iconColor: MODERN_COLORS.accent.purple[600],
-    bgColor: MODERN_COLORS.accent.purple[50],
+    gradient: VIBRANT_GRADIENTS.walletType,
+    iconColor: VIBRANT_COLORS.radiantOrange,
+    bgColor: 'rgba(255, 127, 0, 0.1)',
   },
 ];
 
@@ -87,9 +88,6 @@ export const ModernGuardianTypeSelector: React.FC<ModernGuardianTypeSelectorProp
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const selectedOption = [...GUARDIAN_TYPES, ...ADVANCED_TYPES].find(
-    option => option.value === selectedType
-  );
 
   const TypeCard: React.FC<{ option: GuardianTypeOption; isSelected: boolean }> = ({
     option,
@@ -109,13 +107,17 @@ export const ModernGuardianTypeSelector: React.FC<ModernGuardianTypeSelectorProp
         style={{
           background: isSelected
             ? option.bgColor
-            : MODERN_COLORS.background.primary,
-          color: isSelected ? option.iconColor : MODERN_COLORS.neutral[600],
-          boxShadow: isSelected ? SHADOWS.cardMedium : 'none',
+            : 'rgba(255, 255, 255, 0.7)',
+          color: isSelected ? option.iconColor : VIBRANT_COLORS.darkCarbon,
+          boxShadow: isSelected 
+            ? option.value === GuardianType.EMAIL ? VIBRANT_SHADOWS.blueGlow 
+              : option.value === GuardianType.PHONE ? VIBRANT_SHADOWS.greenGlow
+              : VIBRANT_SHADOWS.orangeGlow
+            : 'none',
         }}
         whileHover={{
           scale: 1.02,
-          boxShadow: SHADOWS.cardHover,
+          boxShadow: VIBRANT_SHADOWS.cardHover,
         }}
         whileTap={{ scale: 0.98 }}
       >

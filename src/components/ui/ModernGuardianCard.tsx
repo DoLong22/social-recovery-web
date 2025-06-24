@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, Wallet, Trash2 } from 'lucide-react';
 import { GuardianType } from '../../api/guardian';
-import { MODERN_COLORS, GRADIENTS, SHADOWS } from '../../constants/modern-design-system';
+import { VIBRANT_COLORS, VIBRANT_GRADIENTS, VIBRANT_SHADOWS } from '../../constants/vibrant-design-system';
 
 interface Guardian {
   type: GuardianType;
@@ -27,34 +27,38 @@ export const ModernGuardianCard: React.FC<ModernGuardianCardProps> = ({
       case GuardianType.EMAIL:
         return {
           icon: Mail,
-          gradient: 'linear-gradient(135deg, #3A86FF 0%, #2E6FCC 100%)',
-          bgColor: MODERN_COLORS.primary[50],
-          iconColor: MODERN_COLORS.primary[600],
+          gradient: VIBRANT_GRADIENTS.emailType,
+          bgColor: 'rgba(0, 163, 255, 0.1)',
+          iconColor: VIBRANT_COLORS.electricBlue,
           label: 'Email Guardian',
+          shadow: VIBRANT_SHADOWS.blueGlow,
         };
       case GuardianType.PHONE:
         return {
           icon: Phone,
-          gradient: 'linear-gradient(135deg, #3CCF4E 0%, #30A63E 100%)',
-          bgColor: MODERN_COLORS.accent.green[50],
-          iconColor: MODERN_COLORS.accent.green[600],
+          gradient: VIBRANT_GRADIENTS.phoneType,
+          bgColor: 'rgba(0, 230, 118, 0.1)',
+          iconColor: VIBRANT_COLORS.vibrantEmerald,
           label: 'Phone Guardian',
+          shadow: VIBRANT_SHADOWS.greenGlow,
         };
       case GuardianType.WALLET:
         return {
           icon: Wallet,
-          gradient: 'linear-gradient(135deg, #8E44AD 0%, #7236A6 100%)',
-          bgColor: MODERN_COLORS.accent.purple[50],
-          iconColor: MODERN_COLORS.accent.purple[600],
+          gradient: VIBRANT_GRADIENTS.walletType,
+          bgColor: 'rgba(255, 127, 0, 0.1)',
+          iconColor: VIBRANT_COLORS.radiantOrange,
           label: 'Wallet Guardian',
+          shadow: VIBRANT_SHADOWS.orangeGlow,
         };
       default:
         return {
           icon: Mail,
-          gradient: 'linear-gradient(135deg, #3A86FF 0%, #2E6FCC 100%)',
-          bgColor: MODERN_COLORS.primary[50],
-          iconColor: MODERN_COLORS.primary[600],
+          gradient: VIBRANT_GRADIENTS.emailType,
+          bgColor: 'rgba(0, 163, 255, 0.1)',
+          iconColor: VIBRANT_COLORS.electricBlue,
           label: 'Guardian',
+          shadow: VIBRANT_SHADOWS.blueGlow,
         };
     }
   };
@@ -71,11 +75,12 @@ export const ModernGuardianCard: React.FC<ModernGuardianCardProps> = ({
       className='relative group'
     >
       <motion.div
-        className='bg-white rounded-xl border border-gray-200 p-4 transition-all duration-200'
-        style={{ boxShadow: SHADOWS.cardSoft }}
+        className='bg-white rounded-xl border-2 border-gray-100 p-4 transition-all duration-300'
+        style={{ boxShadow: VIBRANT_SHADOWS.cardFloat }}
         whileHover={{
-          boxShadow: SHADOWS.cardHover,
+          boxShadow: style.shadow,
           scale: 1.02,
+          borderColor: style.iconColor,
         }}
       >
         {/* Guardian content */}
@@ -120,14 +125,16 @@ export const ModernGuardianCard: React.FC<ModernGuardianCardProps> = ({
           {/* Remove button */}
           <motion.button
             onClick={onRemove}
-            className='w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200 opacity-70 hover:opacity-100'
+            className='w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-300'
             style={{
-              backgroundColor: MODERN_COLORS.semantic.error + '10',
-              color: MODERN_COLORS.semantic.error,
+              backgroundColor: VIBRANT_COLORS.error.light,
+              color: VIBRANT_COLORS.vibrantScarlet,
             }}
             whileHover={{
               scale: 1.1,
-              backgroundColor: MODERN_COLORS.semantic.error + '20',
+              backgroundColor: VIBRANT_COLORS.vibrantScarlet,
+              color: VIBRANT_COLORS.pureWhite,
+              boxShadow: '0 4px 15px rgba(255, 77, 77, 0.4)',
             }}
             whileTap={{ scale: 0.95 }}
           >
