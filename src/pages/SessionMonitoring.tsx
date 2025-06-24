@@ -250,7 +250,7 @@ export const SessionMonitoring: React.FC = () => {
       </AnimatePresence>
 
       {/* Header - Simplified */}
-      <div className="px-6 pt-safe-top pb-4 bg-white border-b border-gray-100">
+      <div className="px-4 sm:px-6 pt-safe-top pb-3 sm:pb-4 bg-white border-b border-gray-100">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">
             Waiting for Guardians
@@ -269,7 +269,7 @@ export const SessionMonitoring: React.FC = () => {
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Progress Section - Redesigned */}
-        <div className="bg-white px-6 py-4 mb-2">
+        <div className="bg-white px-4 sm:px-6 py-3 sm:py-4 mb-2">
           <div className="text-center mb-4">
             <div className="text-3xl font-bold text-gray-900 mb-1">
               {stillWaitingFor > 0 ? (
@@ -336,7 +336,7 @@ export const SessionMonitoring: React.FC = () => {
         </div>
 
         {/* Guardian List - Moved to top and redesigned */}
-        <div className="bg-white px-6 py-4 mb-2">
+        <div className="bg-white px-4 sm:px-6 py-3 sm:py-4 mb-2">
           <h3 className="font-medium text-gray-900 mb-3">Guardian Status</h3>
           <div className="space-y-3">
             {currentSession.invitations.map((invitation, index) => {
@@ -383,7 +383,7 @@ export const SessionMonitoring: React.FC = () => {
         </div>
 
         {/* What Happens Next Section */}
-        <div className="bg-white px-6 py-4 mb-2">
+        <div className="bg-white px-4 sm:px-6 py-3 sm:py-4 mb-2">
           <h3 className="font-medium text-gray-900 mb-3">What happens next?</h3>
           <div className="space-y-3">
             <div className="flex items-start gap-3">
@@ -424,7 +424,7 @@ export const SessionMonitoring: React.FC = () => {
         </div>
 
         {/* Actions */}
-        <div className="px-6 py-4 space-y-3">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 space-y-3">
           {/* Refresh Button with Last Updated */}
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-gray-500">

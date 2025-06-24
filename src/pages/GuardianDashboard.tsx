@@ -186,7 +186,7 @@ export const GuardianDashboard: React.FC = () => {
   return (
     <div className="h-full flex flex-col bg-gray-50">
       {/* Header with Navigation */}
-      <div className="px-6 pt-safe-top pb-4 bg-white border-b border-gray-100">
+      <div className="px-4 sm:px-6 pt-safe-top pb-3 sm:pb-4 bg-white border-b border-gray-100">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">
             Guardian Dashboard
@@ -212,7 +212,7 @@ export const GuardianDashboard: React.FC = () => {
         <div className="flex-1">
         {/* Active Recovery Sessions - Most Prominent */}
         {activeRecoverySessions.length > 0 && (
-          <div className="px-6 py-4 bg-white border-b border-gray-100">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 bg-white border-b border-gray-100">
             <div className="mb-3">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center">
                 <span className="text-2xl mr-2">🚨</span>
@@ -320,7 +320,7 @@ export const GuardianDashboard: React.FC = () => {
         )}
 
         {/* Status Overview */}
-        <div className="px-6 py-4">
+        <div className="px-4 sm:px-6 py-3 sm:py-4">
           <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
             <div className="flex items-center justify-between">
               <div>
@@ -341,7 +341,7 @@ export const GuardianDashboard: React.FC = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="px-6 pb-4">
+        <div className="px-4 sm:px-6 pb-3 sm:pb-4">
           <div className="grid grid-cols-2 gap-3">
             <Button
               variant="secondary"
@@ -364,7 +364,7 @@ export const GuardianDashboard: React.FC = () => {
         </div>
 
         {/* Guardian List */}
-        <div className="px-6 pb-4">
+        <div className="px-4 sm:px-6 pb-3 sm:pb-4">
           <h3 className="font-semibold text-gray-900 mb-3">Active Guardians</h3>
           
           {isLoading ? (
@@ -474,7 +474,7 @@ export const GuardianDashboard: React.FC = () => {
         </div>
 
         {/* Recovery Section */}
-        <div className="px-6 pb-8">
+        <div className="px-4 sm:px-6 pb-6 sm:pb-8">
           {/* Recovery Button - Prominent */}
           <Card className="bg-orange-50 border-orange-200 mb-4">
             <div className="flex items-center justify-between">

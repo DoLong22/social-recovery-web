@@ -137,7 +137,7 @@ export const ModernLayout: React.FC<LayoutProps> = ({ children }) => {
       </header>
 
       {/* Main Content */}
-      <main className='flex-1 overflow-y-auto px-4 py-6'>{children}</main>
+      <main className={`flex-1 overflow-y-auto ${location.pathname === '/setup' ? '' : 'sm:px-4 sm:py-6'}`}>{children}</main>
 
       {/* Modern Bottom Navigation */}
       <nav className='bg-white border-t border-gray-200 safe-bottom flex-shrink-0'>

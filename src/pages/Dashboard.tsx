@@ -40,7 +40,7 @@ export const Dashboard: React.FC = () => {
   // Show error if both queries failed
   if (sessionError && guardiansError) {
     return (
-      <div className="h-full flex items-center justify-center px-6">
+      <div className="h-full flex items-center justify-center px-4 sm:px-6">
         <Card className="text-center">
           <h2 className="text-lg font-semibold text-red-600 mb-2">Connection Error</h2>
           <p className="text-gray-600 mb-4">
@@ -195,7 +195,7 @@ export const Dashboard: React.FC = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className='flex flex-col items-center justify-center h-full text-center px-6'
+      className='flex flex-col items-center justify-center h-full text-center px-4 sm:px-6'
       style={{
         background: GRADIENTS.radialBackgroundBlue,
       }}

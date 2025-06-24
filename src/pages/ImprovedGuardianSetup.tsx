@@ -411,7 +411,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
                   ) : (
                     <>
                       <ModernButton
-                        onClick={() => setCurrentStep(1)}
+                        onClick={() => setCurrentStep(2)}
                         fullWidth
                         size='lg'
                         variant='primary'
@@ -457,7 +457,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
           className='flex flex-col h-full'
         >
           {/* Scrollable content area */}
-          <div className='flex-1 overflow-y-auto px-6 py-4'>
+          <div className='flex-1 overflow-y-auto px-4 py-4'>
             <EnhancedThresholdSelector
               totalGuardians={guardians.length}
               threshold={minimumAcceptances}
@@ -466,13 +466,13 @@ export const ImprovedGuardianSetup: React.FC = () => {
           </div>
 
           {/* Fixed bottom navigation */}
-          <div className='px-6 py-4 bg-white border-t border-gray-100'>
+          <div className='px-4 py-3 bg-white border-t border-gray-100'>
             <div className='flex gap-3'>
-              <Button variant='ghost' onClick={() => setCurrentStep(0)} fullWidth>
+              <Button variant='ghost' onClick={() => setCurrentStep(1)} fullWidth>
                 ← Back
               </Button>
               <Button 
-                onClick={() => setCurrentStep(2)} 
+                onClick={() => setCurrentStep(3)} 
                 fullWidth
                 className='bg-primary-500 hover:bg-primary-600'
               >
@@ -492,12 +492,12 @@ export const ImprovedGuardianSetup: React.FC = () => {
           className='flex flex-col h-full'
         >
           {/* Scrollable content area */}
-          <div className='flex-1 overflow-y-auto px-6 py-4'>
+          <div className='flex-1 overflow-y-auto px-4 py-4'>
             <EnhancedReviewSetup
               guardians={guardians}
               threshold={minimumAcceptances}
               onSubmit={handleSubmit}
-              onEditSecurity={() => setCurrentStep(1)}
+              onEditSecurity={() => setCurrentStep(2)}
               isSubmitting={createSessionMutation.isPending}
             />
           </div>

@@ -171,7 +171,7 @@ export const Sessions: React.FC = () => {
       {selectedSession && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end">
           <div className="bg-white rounded-t-3xl w-full max-h-[80vh] overflow-y-auto animate-slideUp">
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* Header */}
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">Session Details</h2>
