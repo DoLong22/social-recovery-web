@@ -1,14 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { guardianApi } from '../api/guardian';
-import { EnhancedEmptyState } from '../components/ui/EnhancedEmptyState';
-import { Shield } from 'lucide-react';
+import { AnimatedShield } from '../components/ui/AnimatedShield';
+import { ModernButton } from '../components/ui/ModernButton';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { GRADIENTS, MODERN_COLORS, MODERN_TYPOGRAPHY } from '../constants/modern-design-system';
+import { useAuth } from '../contexts/AuthContext';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { email } = useAuth();
 
   // Query current session
   const { data: currentSession, isLoading: sessionLoading, error: sessionError } = useQuery({
@@ -186,18 +190,93 @@ export const Dashboard: React.FC = () => {
   }
 
 
-  // Show empty state if no guardians
+  // Show empty state if no guardians (matching welcome screen design)
   return (
-    <div className="h-full flex items-center justify-center px-6 bg-gray-50">
-      <EnhancedEmptyState
-        icon={<Shield className="w-12 h-12 text-primary-500" />}
-        title="Secure Your Wallet with Guardians"
-        description="Replace complex seed phrases with trusted friends and family who can help you recover access when needed"
-        action={{
-          label: "Start Guardian Setup",
-          onClick: () => navigate('/setup')
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className='flex flex-col items-center justify-center h-full text-center px-6'
+      style={{
+        background: GRADIENTS.radialBackgroundBlue,
+      }}
+    >
+      {/* Animated Shield */}
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.6 }}
+        className='mb-8'
+      >
+        <AnimatedShield size={140} />
+      </motion.div>
+
+      {/* Headline */}
+      <motion.h1
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.6 }}
+        className='mb-4'
+        style={{
+          fontSize: MODERN_TYPOGRAPHY.sizes['3xl'].size,
+          lineHeight: MODERN_TYPOGRAPHY.sizes['3xl'].lineHeight,
+          fontWeight: MODERN_TYPOGRAPHY.weights.black,
+          color: MODERN_COLORS.neutral[900],
         }}
-      />
-    </div>
+      >
+        Secure Your Wallet with Guardians
+      </motion.h1>
+
+      {/* Sub-headline */}
+      <motion.p
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.6 }}
+        className='mb-10 max-w-sm'
+        style={{
+          fontSize: MODERN_TYPOGRAPHY.sizes.lg.size,
+          fontWeight: MODERN_TYPOGRAPHY.weights.medium,
+          color: MODERN_COLORS.neutral[700],
+        }}
+      >
+        Replace complex seed phrases with trusted friends & family
+      </motion.p>
+
+      {/* CTA Button */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.6, duration: 0.6 }}
+        className='w-full max-w-xs'
+      >
+        <ModernButton
+          onClick={() => navigate('/setup')}
+          size='lg'
+          fullWidth
+          variant='primary'
+          icon={
+            <svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 7l5 5m0 0l-5 5m5-5H6' />
+            </svg>
+          }
+        >
+          Start Guardian Setup
+        </ModernButton>
+      </motion.div>
+
+      {/* User email - subtle placement */}
+      {email && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+          className='mt-8 text-sm'
+          style={{
+            color: MODERN_COLORS.neutral[500],
+          }}
+        >
+          {email}
+        </motion.p>
+      )}
+    </motion.div>
   );
 };

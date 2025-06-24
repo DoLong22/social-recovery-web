@@ -41,8 +41,8 @@ export const ImprovedGuardianSetup: React.FC = () => {
   const { showError } = useToast();
   const { email } = useAuth();
   const { triggerSuccess, SuccessComponent } = useSuccessAnimation();
-  // Skip welcome step since we have merged welcome screen in dashboard
-  const [currentStep, setCurrentStep] = useState(0); // Start with welcome screen
+  // Start directly with Add Guardians step (skip welcome)
+  const [currentStep, setCurrentStep] = useState(1); // Start with Add Guardians
   const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [isAddingGuardian, setIsAddingGuardian] = useState(false);
   const [autoInjectIndex, setAutoInjectIndex] = useState(0);
@@ -178,97 +178,6 @@ export const ImprovedGuardianSetup: React.FC = () => {
   ];
 
   const steps = [
-    {
-      title: 'Welcome',
-      component: (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className='flex flex-col items-center justify-center h-full text-center px-6'
-          style={{
-            background: GRADIENTS.radialBackgroundBlue,
-          }}
-        >
-          {/* Animated Shield */}
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className='mb-8'
-          >
-            <AnimatedShield size={140} />
-          </motion.div>
-
-          {/* Headline */}
-          <motion.h1
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className='mb-4'
-            style={{
-              fontSize: MODERN_TYPOGRAPHY.sizes['3xl'].size,
-              lineHeight: MODERN_TYPOGRAPHY.sizes['3xl'].lineHeight,
-              fontWeight: MODERN_TYPOGRAPHY.weights.black,
-              color: MODERN_COLORS.neutral[900],
-            }}
-          >
-            Secure Your Wallet with Guardians
-          </motion.h1>
-
-          {/* Sub-headline */}
-          <motion.p
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className='mb-10 max-w-sm'
-            style={{
-              fontSize: MODERN_TYPOGRAPHY.sizes.lg.size,
-              fontWeight: MODERN_TYPOGRAPHY.weights.medium,
-              color: MODERN_COLORS.neutral[700],
-            }}
-          >
-            Replace complex seed phrases with trusted friends & family
-          </motion.p>
-
-          {/* CTA Button */}
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-            className='w-full max-w-xs'
-          >
-            <ModernButton
-              onClick={() => setCurrentStep(1)}
-              size='lg'
-              fullWidth
-              variant='primary'
-              icon={
-                <svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 7l5 5m0 0l-5 5m5-5H6' />
-                </svg>
-              }
-            >
-              Start Guardian Setup
-            </ModernButton>
-          </motion.div>
-
-          {/* User email - subtle placement */}
-          {email && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.6 }}
-              className='mt-8 text-sm'
-              style={{
-                color: MODERN_COLORS.neutral[500],
-              }}
-            >
-              {email}
-            </motion.p>
-          )}
-        </motion.div>
-      ),
-    },
     {
       title: 'Add Guardians',
       component: (
@@ -502,7 +411,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
                   ) : (
                     <>
                       <ModernButton
-                        onClick={() => setCurrentStep(2)}
+                        onClick={() => setCurrentStep(1)}
                         fullWidth
                         size='lg'
                         variant='primary'
@@ -559,11 +468,11 @@ export const ImprovedGuardianSetup: React.FC = () => {
           {/* Fixed bottom navigation */}
           <div className='px-6 py-4 bg-white border-t border-gray-100'>
             <div className='flex gap-3'>
-              <Button variant='ghost' onClick={() => setCurrentStep(1)} fullWidth>
+              <Button variant='ghost' onClick={() => setCurrentStep(0)} fullWidth>
                 ← Back
               </Button>
               <Button 
-                onClick={() => setCurrentStep(3)} 
+                onClick={() => setCurrentStep(2)} 
                 fullWidth
                 className='bg-primary-500 hover:bg-primary-600'
               >
@@ -588,7 +497,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
               guardians={guardians}
               threshold={minimumAcceptances}
               onSubmit={handleSubmit}
-              onEditSecurity={() => setCurrentStep(2)}
+              onEditSecurity={() => setCurrentStep(1)}
               isSubmitting={createSessionMutation.isPending}
             />
           </div>
@@ -600,7 +509,7 @@ export const ImprovedGuardianSetup: React.FC = () => {
   return (
     <div className='h-full flex flex-col bg-white'>
       {/* Clean Progress Header with Close */}
-      {currentStep > 0 && (
+      {(
         <div className='px-4 py-2 bg-white/95 backdrop-blur-sm sticky top-0 z-30 border-b border-gray-100 relative'>
           {/* Close button - top right */}
           <button
@@ -663,13 +572,13 @@ export const ImprovedGuardianSetup: React.FC = () => {
       <div className='flex-1 overflow-y-auto'>
         <AnimatePresence mode='wait'>
           <motion.div key={currentStep} className='h-full'>
-            {steps[currentStep].component}
+            {steps[currentStep - 1].component}
           </motion.div>
         </AnimatePresence>
       </div>
 
       {/* Compact Step Dots */}
-      {currentStep > 0 && (
+      {(
         <div className='px-4 py-3 bg-white border-t border-gray-100'>
           <StepDots totalSteps={3} currentStep={currentStep} />
         </div>

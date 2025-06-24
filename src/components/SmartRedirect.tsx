@@ -29,7 +29,7 @@ export const SmartRedirect: React.FC = () => {
   }
 
   console.log('guardians: ', guardians);
-  const hasGuardians = guardians.length > 0;
+  const hasGuardians = guardians?.length > 0;
   console.log('hasGuardians: ', hasGuardians);
   const hasActiveSession = currentSession && currentSession.status === 'COMPLETED';
 
