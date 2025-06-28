@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useSwipeable } from 'react-swipeable';
+import { Mail, Phone, Wallet, Key, Building2, Printer } from 'lucide-react';
 import { GuardianType } from '../../api/guardian';
 import { Button } from '../ui/Button';
+import { VIBRANT_GRADIENTS } from '../../constants/vibrant-design-system';
 
 interface SwipeableGuardianCardProps {
   id: string;
@@ -20,12 +22,42 @@ interface SwipeableGuardianCardProps {
 }
 
 const GUARDIAN_TYPE_CONFIG = {
-  [GuardianType.EMAIL]: { icon: '📧' },
-  [GuardianType.PHONE]: { icon: '📱' },
-  [GuardianType.WALLET]: { icon: '🔐' },
-  [GuardianType.HARDWARE]: { icon: '🔑' },
-  [GuardianType.ORGANIZATION]: { icon: '🏢' },
-  [GuardianType.PRINT]: { icon: '🖨️' }
+  [GuardianType.EMAIL]: { 
+    icon: Mail,
+    bgColor: 'bg-blue-100',
+    iconColor: 'text-blue-600',
+    gradient: VIBRANT_GRADIENTS.emailType
+  },
+  [GuardianType.PHONE]: { 
+    icon: Phone,
+    bgColor: 'bg-green-100', 
+    iconColor: 'text-green-600',
+    gradient: VIBRANT_GRADIENTS.phoneType
+  },
+  [GuardianType.WALLET]: { 
+    icon: Wallet,
+    bgColor: 'bg-purple-100',
+    iconColor: 'text-purple-600',
+    gradient: VIBRANT_GRADIENTS.walletType
+  },
+  [GuardianType.HARDWARE]: { 
+    icon: Key,
+    bgColor: 'bg-orange-100',
+    iconColor: 'text-orange-600',
+    gradient: 'linear-gradient(135deg, #FF9900 0%, #CC7A00 100%)'
+  },
+  [GuardianType.ORGANIZATION]: { 
+    icon: Building2,
+    bgColor: 'bg-indigo-100',
+    iconColor: 'text-indigo-600',
+    gradient: 'linear-gradient(135deg, #5E00FF 0%, #3C00CC 100%)'
+  },
+  [GuardianType.PRINT]: { 
+    icon: Printer,
+    bgColor: 'bg-gray-100',
+    iconColor: 'text-gray-600',
+    gradient: 'linear-gradient(135deg, #6B7280 0%, #4B5563 100%)'
+  }
 };
 
 export const SwipeableGuardianCard: React.FC<SwipeableGuardianCardProps> = ({
@@ -109,15 +141,21 @@ export const SwipeableGuardianCard: React.FC<SwipeableGuardianCardProps> = ({
       <motion.div
         animate={controls}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative bg-white border border-gray-200 rounded-2xl p-4 cursor-pointer"
+        className="relative bg-white rounded-2xl p-4 cursor-pointer shadow-lg hover:shadow-xl transition-shadow"
         onClick={onClick}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-              <span className="text-xl">
-                {GUARDIAN_TYPE_CONFIG[type]?.icon || '👤'}
-              </span>
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              GUARDIAN_TYPE_CONFIG[type]?.bgColor || 'bg-gray-100'
+            }`}>
+              {GUARDIAN_TYPE_CONFIG[type] ? (
+                React.createElement(GUARDIAN_TYPE_CONFIG[type].icon, {
+                  className: `w-5 h-5 ${GUARDIAN_TYPE_CONFIG[type].iconColor}`
+                })
+              ) : (
+                <Wallet className="w-5 h-5 text-gray-600" />
+              )}
             </div>
             <div>
               <p className="font-semibold text-gray-900">{name}</p>

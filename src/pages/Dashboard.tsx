@@ -6,7 +6,12 @@ import { guardianApi } from '../api/guardian';
 import { AnimatedShield } from '../components/ui/AnimatedShield';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { VIBRANT_COLORS, VIBRANT_GRADIENTS, VIBRANT_SHADOWS, VIBRANT_TYPOGRAPHY } from '../constants/vibrant-design-system';
+import {
+  VIBRANT_COLORS,
+  VIBRANT_GRADIENTS,
+  VIBRANT_SHADOWS,
+  VIBRANT_TYPOGRAPHY,
+} from '../constants/vibrant-design-system';
 import { useAuth } from '../contexts/AuthContext';
 
 export const Dashboard: React.FC = () => {
@@ -14,24 +19,31 @@ export const Dashboard: React.FC = () => {
   const { email } = useAuth();
 
   // Query current session
-  const { data: currentSession, isLoading: sessionLoading, error: sessionError } = useQuery({
+  const {
+    data: currentSession,
+    isLoading: sessionLoading,
+    error: sessionError,
+  } = useQuery({
     queryKey: ['currentSession'],
     queryFn: () => guardianApi.getCurrentSession(),
-    retry: false
+    retry: false,
   });
 
   // Query guardians
-  const { data: guardiansData, isLoading: guardiansLoading, error: guardiansError } = useQuery({
+  const {
+    data: guardiansData,
+    isLoading: guardiansLoading,
+    error: guardiansError,
+  } = useQuery({
     queryKey: ['guardians'],
     queryFn: () => guardianApi.getGuardians(),
-    retry: false
+    retry: false,
   });
-
 
   if (sessionLoading || guardiansLoading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <div className='h-full flex items-center justify-center'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500'></div>
       </div>
     );
   }
@@ -39,19 +51,21 @@ export const Dashboard: React.FC = () => {
   // Show error if both queries failed
   if (sessionError && guardiansError) {
     return (
-      <div className="h-full flex items-center justify-center px-4 sm:px-6">
-        <Card className="text-center">
-          <h2 className="text-lg font-semibold text-red-600 mb-2">Connection Error</h2>
-          <p className="text-gray-600 mb-4">
-            Unable to load dashboard data. Please check if the backend is running.
+      <div className='h-full flex items-center justify-center px-4 sm:px-6'>
+        <Card className='text-center'>
+          <h2 className='text-lg font-semibold text-red-600 mb-2'>
+            Connection Error
+          </h2>
+          <p className='text-gray-600 mb-4'>
+            Unable to load dashboard data. Please check if the backend is
+            running.
           </p>
-          <p className="text-sm text-gray-500 mb-4">
-            Session Error: {sessionError?.message}<br/>
+          <p className='text-sm text-gray-500 mb-4'>
+            Session Error: {sessionError?.message}
+            <br />
             Guardians Error: {guardiansError?.message}
           </p>
-          <Button onClick={() => window.location.reload()}>
-            Retry
-          </Button>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
         </Card>
       </div>
     );
@@ -61,7 +75,10 @@ export const Dashboard: React.FC = () => {
   const hasGuardians = guardians.length > 0;
 
   // If user has guardians and no active session, redirect to GuardianDashboard
-  if (hasGuardians && (!currentSession || currentSession.status === 'COMPLETED')) {
+  if (
+    hasGuardians &&
+    (!currentSession || currentSession.status === 'COMPLETED')
+  ) {
     navigate('/guardian-dashboard', { replace: true });
     return null;
   }
@@ -70,141 +87,322 @@ export const Dashboard: React.FC = () => {
   if (currentSession && currentSession.status !== 'COMPLETED') {
     const acceptedCount = currentSession.statistics.acceptedCount;
     const totalInvitations = currentSession.statistics.totalInvitations;
-    const stillWaitingFor = totalInvitations - acceptedCount - (currentSession.statistics.declinedCount || 0);
-    
+
     return (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className='flex flex-col h-full relative'
+        className='flex flex-col h-full relative overflow-hidden'
         style={{
-          background: VIBRANT_GRADIENTS.lightBackground,
+          background: `linear-gradient(135deg, #1A0033 0%, #6A0DAD 100%)`,
         }}
       >
-        {/* Dynamic background particles */}
+        {/* Command Center Geometric Pattern */}
         <div className='absolute inset-0 overflow-hidden'>
-          {[...Array(15)].map((_, i) => (
+          {/* Subtle mesh overlay */}
+          <div
+            className='absolute inset-0 opacity-10'
+            style={{
+              backgroundImage: `
+                radial-gradient(circle at 25% 25%, ${VIBRANT_COLORS.electricBlue} 0%, transparent 50%),
+                radial-gradient(circle at 75% 25%, ${VIBRANT_COLORS.neonPurple} 0%, transparent 50%),
+                radial-gradient(circle at 25% 75%, ${VIBRANT_COLORS.electricTeal} 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, ${VIBRANT_COLORS.deepViolet} 0%, transparent 50%)
+              `,
+            }}
+          />
+
+          {/* Flowing light trails */}
+          {[...Array(8)].map((_, i) => (
             <motion.div
               key={i}
-              className='absolute w-1 h-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full'
+              className='absolute w-px h-20 bg-gradient-to-b from-transparent via-white to-transparent opacity-20'
+              style={{
+                left: `${10 + i * 12}%`,
+                top: `-10%`,
+              }}
+              animate={{
+                y: ['-10%', '110%'],
+                opacity: [0, 0.4, 0],
+              }}
+              transition={{
+                duration: 8 + Math.random() * 4,
+                repeat: Infinity,
+                delay: Math.random() * 4,
+                ease: 'linear',
+              }}
+            />
+          ))}
+
+          {/* Floating tech particles */}
+          {[...Array(12)].map((_, i) => (
+            <motion.div
+              key={i}
+              className='absolute w-1 h-1 bg-white rounded-full'
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
-                filter: 'blur(1px)',
+                filter: 'blur(0.5px)',
               }}
               animate={{
-                opacity: [0.2, 0.8, 0.2],
-                scale: [1, 1.5, 1],
-                y: [-10, 10, -10],
+                opacity: [0.1, 0.6, 0.1],
+                scale: [0.5, 1.2, 0.5],
+                y: [-15, 15, -15],
+                x: [-10, 10, -10],
               }}
               transition={{
-                duration: 4 + Math.random() * 2,
+                duration: 6 + Math.random() * 3,
                 repeat: Infinity,
-                delay: Math.random() * 2,
+                delay: Math.random() * 3,
+                ease: 'easeInOut',
               }}
             />
           ))}
         </div>
 
-        <div className="relative z-10 space-y-6 p-4 sm:p-6 overflow-y-auto flex-1">
-          {/* Enhanced Active Session Status */}
-          <motion.div
-            className="rounded-3xl p-8 relative overflow-hidden"
-            style={{
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
-              border: '1px solid rgba(255, 255, 255, 0.3)'
-            }}
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.1, type: 'spring' }}
-          >
-            {/* Status indicator glow */}
-            <div 
-              className="absolute top-0 left-0 w-full h-1 rounded-t-3xl"
-              style={{
-                background: currentSession.status === 'ALL_ACCEPTED' 
-                  ? `linear-gradient(90deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)`
-                  : currentSession.status === 'WAITING_FOR_ALL'
-                    ? `linear-gradient(90deg, ${VIBRANT_COLORS.electricBlue} 0%, ${VIBRANT_COLORS.electricTeal} 100%)`
-                    : `linear-gradient(90deg, ${VIBRANT_COLORS.radiantOrange} 0%, ${VIBRANT_COLORS.vibrantScarlet} 100%)`
+        {/* Header - Command Center Style */}
+        <motion.div
+          className='px-4 sm:px-6 py-4 border-b border-white/10 relative'
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <div className='flex items-center justify-between'>
+            <div>
+              <h1
+                className='font-black text-white text-xl'
+                style={{ fontFamily: VIBRANT_TYPOGRAPHY.fonts.display }}
+              >
+                Guardian Dashboard
+              </h1>
+              <p className='text-white/70 text-sm font-medium'>{email}</p>
+            </div>
+            <motion.div
+              className='w-3 h-3 rounded-full'
+              style={{ background: VIBRANT_COLORS.vibrantEmerald }}
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.7, 1, 0.7],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut',
               }}
             />
-            
-            <div className="flex items-center justify-between mb-6">
-              <motion.h2 
-                className="font-black"
+          </div>
+        </motion.div>
+
+        <div className='relative z-10 space-y-6 p-4 sm:p-6 overflow-y-auto flex-1'>
+          {/* Active Session - Hero Command Card */}
+          <motion.div
+            className='rounded-3xl p-8 relative overflow-hidden'
+            style={{
+              background:
+                currentSession.status === 'ALL_ACCEPTED'
+                  ? `linear-gradient(135deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)`
+                  : `linear-gradient(135deg, ${VIBRANT_COLORS.electricBlue} 0%, ${VIBRANT_COLORS.neonPurple} 100%)`,
+              boxShadow:
+                currentSession.status === 'ALL_ACCEPTED'
+                  ? '0 25px 50px rgba(0, 230, 118, 0.4), 0 12px 30px rgba(0, 230, 118, 0.2)'
+                  : '0 25px 50px rgba(163, 0, 255, 0.4), 0 12px 30px rgba(0, 163, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+            }}
+            initial={{ y: 30, opacity: 0, scale: 0.95 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 100 }}
+            whileHover={{ scale: 1.02 }}
+          >
+            {/* Status indicator glow */}
+            <div
+              className='absolute top-0 left-0 w-full h-1 rounded-t-3xl'
+              style={{
+                background:
+                  currentSession.status === 'ALL_ACCEPTED'
+                    ? `linear-gradient(90deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)`
+                    : currentSession.status === 'WAITING_FOR_ALL'
+                    ? `linear-gradient(90deg, ${VIBRANT_COLORS.electricBlue} 0%, ${VIBRANT_COLORS.electricTeal} 100%)`
+                    : `linear-gradient(90deg, ${VIBRANT_COLORS.radiantOrange} 0%, ${VIBRANT_COLORS.vibrantScarlet} 100%)`,
+              }}
+            />
+
+            {/* Animated shield/lock icon for active status */}
+            <motion.div
+              className='absolute top-6 right-6 w-12 h-12 rounded-2xl flex items-center justify-center'
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+              }}
+              animate={{
+                rotate: [0, 5, -5, 0],
+                scale: [1, 1.05, 1],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              <svg
+                className='w-7 h-7 text-white'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2.5}
+                  d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z'
+                />
+              </svg>
+            </motion.div>
+
+            <div className='mb-6'>
+              <motion.h2
+                className='font-black text-white mb-2'
                 style={{
-                  fontSize: '24px',
-                  color: VIBRANT_COLORS.darkCarbon,
-                  fontFamily: VIBRANT_TYPOGRAPHY.fonts.display
+                  fontSize: '32px',
+                  fontFamily: VIBRANT_TYPOGRAPHY.fonts.display,
+                  textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
                 }}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.3 }}
               >
-                🚀 Active Session
+                {currentSession.status === 'ALL_ACCEPTED'
+                  ? 'Wallet Protected'
+                  : 'Active Session'}
               </motion.h2>
-              <motion.span 
-                className="px-4 py-2 rounded-xl font-bold text-sm"
-                style={{
-                  background: currentSession.status === 'ALL_ACCEPTED' 
-                    ? `linear-gradient(135deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)`
-                    : currentSession.status === 'WAITING_FOR_ALL'
-                      ? `linear-gradient(135deg, ${VIBRANT_COLORS.electricBlue} 0%, ${VIBRANT_COLORS.electricTeal} 100%)`
-                      : `linear-gradient(135deg, ${VIBRANT_COLORS.radiantOrange} 0%, ${VIBRANT_COLORS.vibrantScarlet} 100%)`,
-                  color: VIBRANT_COLORS.pureWhite,
-                  boxShadow: currentSession.status === 'ALL_ACCEPTED' 
-                    ? VIBRANT_SHADOWS.successGlow
-                    : currentSession.status === 'WAITING_FOR_ALL'
-                      ? VIBRANT_SHADOWS.blueGlow
-                      : VIBRANT_SHADOWS.orangeGlow
-                }}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.3, type: 'spring' }}
-                whileHover={{ scale: 1.05 }}
+
+              <motion.div
+                className='flex items-center gap-3'
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.4 }}
               >
-                {currentSession.status.replace(/_/g, ' ')}
-              </motion.span>
+                <motion.span
+                  className='px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2'
+                  style={{
+                    background:
+                      currentSession.status === 'ALL_ACCEPTED'
+                        ? 'rgba(255, 255, 255, 0.25)'
+                        : currentSession.status === 'WAITING_FOR_ALL'
+                        ? 'rgba(255, 127, 0, 0.9)'
+                        : 'rgba(255, 77, 77, 0.9)',
+                    color: VIBRANT_COLORS.pureWhite,
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                  }}
+                  animate={
+                    currentSession.status === 'WAITING_FOR_ALL'
+                      ? {
+                          scale: [1, 1.05, 1],
+                        }
+                      : {}
+                  }
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                >
+                  {currentSession.status === 'ALL_ACCEPTED' && '✅ ACTIVE'}
+                  {currentSession.status === 'WAITING_FOR_ALL' && (
+                    <>
+                      <motion.div
+                        className='w-2 h-2 rounded-full bg-white'
+                        animate={{
+                          scale: [1, 1.3, 1],
+                          opacity: [0.7, 1, 0.7],
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        }}
+                      />
+                      WAITING FOR ALL
+                    </>
+                  )}
+                  {currentSession.status === 'SOME_DECLINED' &&
+                    '⚠️ SOME DECLINED'}
+                </motion.span>
+              </motion.div>
             </div>
-            
-            <motion.p 
-              className="font-medium mb-6"
-              style={{ 
-                color: VIBRANT_COLORS.darkCarbon,
-                fontSize: '16px'
+
+            <motion.p
+              className='font-medium mb-6 text-white/90'
+              style={{
+                fontSize: '16px',
+                textShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
               }}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.5 }}
             >
-              Your guardian network is securing your wallet.
-              {currentSession.status === 'ALL_ACCEPTED' && ' 🎉 All guardians have accepted!'}
-              {currentSession.status === 'WAITING_FOR_ALL' && ` ⏳ Waiting for ${stillWaitingFor} more response${stillWaitingFor !== 1 ? 's' : ''}...`}
-              {currentSession.status === 'SOME_DECLINED' && ' ⚠️ Some guardians have declined.'}
+              {currentSession.status === 'ALL_ACCEPTED' && (
+                <span className='flex items-center gap-2'>
+                  <motion.span
+                    animate={{ rotate: [0, 15, -15, 0] }}
+                    transition={{
+                      duration: 0.6,
+                      repeat: Infinity,
+                      repeatDelay: 3,
+                    }}
+                  >
+                    🎉
+                  </motion.span>
+                  {acceptedCount} Active Guardians • Your wallet is fully
+                  secured
+                </span>
+              )}
+              {currentSession.status === 'WAITING_FOR_ALL' && (
+                <span className='flex items-center gap-2'>
+                  <motion.span
+                    animate={{ rotate: [0, 360] }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    }}
+                  >
+                    ⏳
+                  </motion.span>
+                  You have an active guardian setup session waiting for
+                  responses
+                </span>
+              )}
+              {currentSession.status === 'SOME_DECLINED' && (
+                <span className='flex items-center gap-2'>
+                  ⚠️ {currentSession.statistics.declinedCount} guardian
+                  {currentSession.statistics.declinedCount > 1 ? 's' : ''}{' '}
+                  declined • Add more guardians to meet threshold
+                </span>
+              )}
             </motion.p>
 
-            <div className="space-y-4">
+            <div className='space-y-4'>
               {currentSession.status === 'ALL_ACCEPTED' ? (
                 <>
-                  <motion.div 
-                    className="rounded-2xl p-6 relative overflow-hidden"
+                  <motion.div
+                    className='rounded-2xl p-6 relative overflow-hidden'
                     style={{
                       background: `linear-gradient(135deg, ${VIBRANT_COLORS.success.light} 0%, rgba(0, 230, 118, 0.1) 100%)`,
-                      border: `2px solid ${VIBRANT_COLORS.vibrantEmerald}40`
+                      border: `2px solid ${VIBRANT_COLORS.vibrantEmerald}40`,
+                      color: VIBRANT_COLORS.pureWhite,
+                      backdropFilter: 'blur(10px)',
                     }}
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.5, type: 'spring' }}
                   >
                     {/* Celebration particles */}
-                    <div className="absolute inset-0 overflow-hidden">
+                    <div className='absolute inset-0 overflow-hidden'>
                       {[...Array(6)].map((_, i) => (
                         <motion.div
                           key={i}
-                          className="absolute w-1.5 h-1.5 rounded-full"
+                          className='absolute w-1.5 h-1.5 rounded-full'
                           style={{
                             background: VIBRANT_COLORS.vibrantEmerald,
                             left: `${20 + i * 12}%`,
@@ -223,20 +421,34 @@ export const Dashboard: React.FC = () => {
                         />
                       ))}
                     </div>
-                    <div className="relative flex items-center space-x-3 mb-3">
-                      <motion.span 
-                        className="text-2xl"
+                    <div className='relative flex items-center space-x-3 mb-3'>
+                      <motion.span
+                        className='text-2xl'
                         animate={{ rotate: [0, 15, -15, 0] }}
-                        transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 2 }}
+                        transition={{
+                          duration: 0.6,
+                          repeat: Infinity,
+                          repeatDelay: 2,
+                        }}
                       >
                         🎉
                       </motion.span>
-                      <p className="font-bold text-lg" style={{ color: VIBRANT_COLORS.success.dark }}>
+                      <p
+                        className='font-bold text-lg'
+                        style={{ color: VIBRANT_COLORS.success.dark }}
+                      >
                         Ready to complete setup!
                       </p>
                     </div>
-                    <p className="font-medium" style={{ color: VIBRANT_COLORS.success.dark, opacity: 0.9 }}>
-                      All guardians have accepted. Complete your setup to secure your wallet.
+                    <p
+                      className='font-medium'
+                      style={{
+                        color: VIBRANT_COLORS.success.dark,
+                        opacity: 0.9,
+                      }}
+                    >
+                      All guardians have accepted. Complete your setup to secure
+                      your wallet.
                     </p>
                   </motion.div>
                   <motion.div
@@ -246,16 +458,16 @@ export const Dashboard: React.FC = () => {
                   >
                     <motion.button
                       onClick={() => navigate('/session-monitoring')}
-                      className="w-full px-6 py-4 rounded-xl font-bold text-white relative overflow-hidden transition-all duration-300"
+                      className='w-full px-6 py-4 rounded-xl font-bold text-white relative overflow-hidden transition-all duration-300'
                       style={{
                         background: `linear-gradient(135deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)`,
                         boxShadow: VIBRANT_SHADOWS.successGlow,
-                        fontSize: '18px'
+                        fontSize: '18px',
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <span className="flex items-center justify-center gap-3">
+                      <span className='flex items-center justify-center gap-3'>
                         Complete Setup Now
                         <motion.div
                           animate={{ x: [0, 5, 0] }}
@@ -275,11 +487,11 @@ export const Dashboard: React.FC = () => {
                 >
                   <motion.button
                     onClick={() => navigate('/session-monitoring')}
-                    className="w-full px-6 py-4 rounded-xl font-bold text-white relative overflow-hidden transition-all duration-300"
+                    className='w-full px-6 py-4 rounded-xl font-bold text-white relative overflow-hidden transition-all duration-300'
                     style={{
                       background: `linear-gradient(135deg, ${VIBRANT_COLORS.electricBlue} 0%, ${VIBRANT_COLORS.electricTeal} 100%)`,
                       boxShadow: VIBRANT_SHADOWS.blueGlow,
-                      fontSize: '16px'
+                      fontSize: '16px',
                     }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -291,158 +503,281 @@ export const Dashboard: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Enhanced Quick Stats */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Command Center Status Metrics */}
+          <div className='grid grid-cols-2 gap-4'>
             <motion.div
-              className="rounded-2xl p-6 text-center relative overflow-hidden"
+              className='rounded-2xl p-6 text-center relative overflow-hidden'
               style={{
-                background: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(10px)',
-                boxShadow: VIBRANT_SHADOWS.cardFloat,
-                border: '1px solid rgba(0, 163, 255, 0.2)'
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(15px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                border: `1px solid ${VIBRANT_COLORS.electricBlue}40`,
               }}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.7 }}
-              whileHover={{ scale: 1.05 }}
-            >
-              <div 
-                className="absolute top-0 left-0 w-full h-1 rounded-t-2xl"
-                style={{
-                  background: `linear-gradient(90deg, ${VIBRANT_COLORS.electricBlue} 0%, ${VIBRANT_COLORS.electricTeal} 100%)`
-                }}
-              />
-              <motion.div 
-                className="font-black mb-2"
-                style={{
-                  fontSize: '28px',
-                  color: VIBRANT_COLORS.electricBlue,
-                  fontFamily: VIBRANT_TYPOGRAPHY.fonts.display
-                }}
-                whileHover={{ scale: 1.1 }}
-              >
-                {currentSession.statistics.totalInvitations}
-              </motion.div>
-              <div className="font-medium" style={{ color: VIBRANT_COLORS.darkCarbon }}>Total Guardians</div>
-            </motion.div>
-            <motion.div
-              className="rounded-2xl p-6 text-center relative overflow-hidden"
-              style={{
-                background: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(10px)',
-                boxShadow: VIBRANT_SHADOWS.cardFloat,
-                border: '1px solid rgba(0, 230, 118, 0.2)'
+              whileHover={{
+                scale: 1.05,
+                boxShadow: '0 12px 40px rgba(0, 163, 255, 0.4)',
               }}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              whileHover={{ scale: 1.05 }}
             >
-              <div 
-                className="absolute top-0 left-0 w-full h-1 rounded-t-2xl"
+              {/* Glowing border */}
+              <div
+                className='absolute top-0 left-0 w-full h-1 rounded-t-2xl'
                 style={{
-                  background: `linear-gradient(90deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)`
+                  background: `linear-gradient(90deg, ${VIBRANT_COLORS.electricBlue} 0%, ${VIBRANT_COLORS.electricTeal} 100%)`,
                 }}
               />
-              <motion.div 
-                className="font-black mb-2"
+              <motion.div
+                className='font-black mb-2 text-white'
                 style={{
-                  fontSize: '28px',
-                  color: VIBRANT_COLORS.vibrantEmerald,
-                  fontFamily: VIBRANT_TYPOGRAPHY.fonts.display
+                  fontSize: '32px',
+                  fontFamily: VIBRANT_TYPOGRAPHY.fonts.display,
+                  textShadow: '0 2px 10px rgba(0, 163, 255, 0.5)',
                 }}
                 whileHover={{ scale: 1.1 }}
                 animate={{
-                  scale: [1, 1.05, 1],
+                  textShadow: [
+                    '0 2px 10px rgba(0, 163, 255, 0.5)',
+                    '0 2px 15px rgba(0, 163, 255, 0.8)',
+                    '0 2px 10px rgba(0, 163, 255, 0.5)',
+                  ],
                 }}
                 transition={{
                   duration: 2,
                   repeat: Infinity,
-                  ease: "easeInOut",
+                  ease: 'easeInOut',
+                }}
+              >
+                {currentSession.statistics.totalInvitations}
+              </motion.div>
+              <div className='font-medium text-white/80'>Total Guardians</div>
+            </motion.div>
+
+            <motion.div
+              className='rounded-2xl p-6 text-center relative overflow-hidden'
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(15px)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                border: `1px solid ${VIBRANT_COLORS.vibrantEmerald}40`,
+              }}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              whileHover={{
+                scale: 1.05,
+                boxShadow: '0 12px 40px rgba(0, 230, 118, 0.4)',
+              }}
+            >
+              {/* Glowing border */}
+              <div
+                className='absolute top-0 left-0 w-full h-1 rounded-t-2xl'
+                style={{
+                  background: `linear-gradient(90deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)`,
+                }}
+              />
+              <motion.div
+                className='font-black mb-2 text-white'
+                style={{
+                  fontSize: '32px',
+                  fontFamily: VIBRANT_TYPOGRAPHY.fonts.display,
+                  textShadow: '0 2px 10px rgba(0, 230, 118, 0.5)',
+                }}
+                whileHover={{ scale: 1.1 }}
+                animate={{
+                  scale: [1, 1.05, 1],
+                  textShadow: [
+                    '0 2px 10px rgba(0, 230, 118, 0.5)',
+                    '0 2px 15px rgba(0, 230, 118, 0.8)',
+                    '0 2px 10px rgba(0, 230, 118, 0.5)',
+                  ],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
                 }}
               >
                 {currentSession.statistics.acceptedCount}
               </motion.div>
-              <div className="font-medium" style={{ color: VIBRANT_COLORS.darkCarbon }}>Accepted</div>
+              <div className='font-medium text-white/80'>Accepted</div>
             </motion.div>
           </div>
 
-          {/* Enhanced Session Details */}
+          {/* Recovery Settings - Command Center Style */}
           <motion.div
-            className="rounded-2xl p-6 relative overflow-hidden"
+            className='rounded-2xl p-6 relative overflow-hidden'
             style={{
-              background: 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(10px)',
-              boxShadow: VIBRANT_SHADOWS.cardFloat,
-              border: '1px solid rgba(0, 0, 0, 0.1)'
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(15px)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
             }}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.9 }}
           >
-            <motion.h3 
-              className="font-bold mb-6"
+            <motion.h3
+              className='font-black mb-6 text-white flex items-center gap-3'
               style={{
-                fontSize: '20px',
-                color: VIBRANT_COLORS.darkCarbon,
-                fontFamily: VIBRANT_TYPOGRAPHY.fonts.display
+                fontSize: '22px',
+                fontFamily: VIBRANT_TYPOGRAPHY.fonts.display,
+                textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
               }}
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 1.0 }}
             >
-              📊 Session Details
+              <svg
+                className='w-6 h-6'
+                style={{ color: VIBRANT_COLORS.electricTeal }}
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
+                />
+              </svg>
+              Recovery Settings
             </motion.h3>
-            <div className="space-y-4">
-              <motion.div 
-                className="flex justify-between items-center p-3 rounded-xl"
-                style={{ background: VIBRANT_COLORS.lightGrey }}
+
+            <div className='space-y-4'>
+              <motion.div
+                className='flex justify-between items-center p-4 rounded-xl'
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                }}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 1.1 }}
               >
-                <span className="font-medium" style={{ color: VIBRANT_COLORS.darkCarbon }}>Minimum Required:</span>
-                <span className="font-bold" style={{ color: VIBRANT_COLORS.electricBlue }}>
-                  {currentSession.minimumAcceptances} guardians
+                <span className='font-medium text-white/80'>
+                  Minimum Required:
+                </span>
+                <span className='font-bold text-white flex items-center gap-2'>
+                  {currentSession.minimumAcceptances} of {totalInvitations}
                 </span>
               </motion.div>
-              <motion.div 
-                className="flex justify-between items-center p-3 rounded-xl"
-                style={{ background: VIBRANT_COLORS.lightGrey }}
+
+              <motion.div
+                className='flex justify-between items-center p-4 rounded-xl'
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                }}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 1.2 }}
               >
-                <span className="font-medium" style={{ color: VIBRANT_COLORS.darkCarbon }}>Can Proceed:</span>
-                <motion.span 
-                  className="font-bold flex items-center gap-2"
-                  style={{ 
-                    color: currentSession.canProceed ? VIBRANT_COLORS.vibrantEmerald : VIBRANT_COLORS.vibrantScarlet
+                <span className='font-medium text-white/80'>Can Proceed:</span>
+                <motion.span
+                  className='font-bold flex items-center gap-2'
+                  style={{
+                    color: currentSession.canProceed
+                      ? VIBRANT_COLORS.electricLime
+                      : VIBRANT_COLORS.vibrantScarlet,
                   }}
                   whileHover={{ scale: 1.05 }}
+                  animate={
+                    currentSession.canProceed
+                      ? {
+                          textShadow: [
+                            '0 0 10px rgba(110, 255, 0, 0.5)',
+                            '0 0 20px rgba(110, 255, 0, 0.8)',
+                            '0 0 10px rgba(110, 255, 0, 0.5)',
+                          ],
+                        }
+                      : {
+                          textShadow: [
+                            '0 0 10px rgba(255, 77, 77, 0.5)',
+                            '0 0 20px rgba(255, 77, 77, 0.8)',
+                            '0 0 10px rgba(255, 77, 77, 0.5)',
+                          ],
+                        }
+                  }
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
                 >
                   {currentSession.canProceed ? '✅ Yes' : '❌ No'}
                 </motion.span>
               </motion.div>
-              <motion.div 
-                className="flex justify-between items-center p-3 rounded-xl"
-                style={{ background: VIBRANT_COLORS.lightGrey }}
+
+              <motion.div
+                className='flex justify-between items-center p-4 rounded-xl'
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                }}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 1.3 }}
               >
-                <span className="font-medium" style={{ color: VIBRANT_COLORS.darkCarbon }}>Created:</span>
-                <span className="font-bold" style={{ color: VIBRANT_COLORS.darkCarbon }}>
-                  {new Date(currentSession.createdAt).toLocaleDateString()}
+                <span className='font-medium text-white/80'>Version:</span>
+                <span className='font-bold text-white/90'>v1.0.0</span>
+              </motion.div>
+
+              <motion.div
+                className='flex justify-between items-center p-4 rounded-xl'
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                }}
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 1.4 }}
+              >
+                <span className='font-medium text-white/80'>Last Check:</span>
+                <span className='font-bold text-white/90'>
+                  {new Date().toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
                 </span>
               </motion.div>
             </div>
+
+            {/* View History Link */}
+            <motion.div
+              className='mt-6 pt-4 border-t border-white/20'
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.5 }}
+            >
+              <button
+                className='flex items-center gap-2 text-sm font-medium hover:underline transition-colors'
+                style={{ color: VIBRANT_COLORS.electricTeal }}
+                onClick={() => navigate('/session-monitoring')}
+              >
+                <svg
+                  className='w-4 h-4'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  stroke='currentColor'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
+                  />
+                </svg>
+                View History
+              </button>
+            </motion.div>
           </motion.div>
         </div>
       </motion.div>
     );
   }
-
 
   // Show empty state if no guardians (vibrant design)
   return (
@@ -482,19 +817,24 @@ export const Dashboard: React.FC = () => {
       <motion.div
         initial={{ scale: 0.8, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.8, type: "spring", stiffness: 100 }}
+        transition={{
+          delay: 0.2,
+          duration: 0.8,
+          type: 'spring',
+          stiffness: 100,
+        }}
         className='mb-8 relative'
         style={{ zIndex: 10 }}
       >
         {/* Multiple glow layers for depth */}
-        <div 
+        <div
           className='absolute inset-0 blur-3xl'
           style={{
             background: `radial-gradient(circle, ${VIBRANT_COLORS.glowGreen}40 0%, ${VIBRANT_COLORS.electricBlue}30 40%, transparent 70%)`,
             transform: 'scale(1.8)',
           }}
         />
-        <div 
+        <div
           className='absolute inset-0 blur-2xl'
           style={{
             background: `radial-gradient(circle, ${VIBRANT_COLORS.electricBlue}50 0%, transparent 60%)`,
@@ -502,7 +842,7 @@ export const Dashboard: React.FC = () => {
           }}
         />
         {/* Pulsing effect */}
-        <motion.div 
+        <motion.div
           className='absolute inset-0'
           style={{
             background: `radial-gradient(circle, ${VIBRANT_COLORS.pureWhite}10 0%, transparent 50%)`,
@@ -515,7 +855,7 @@ export const Dashboard: React.FC = () => {
           transition={{
             duration: 3,
             repeat: Infinity,
-            ease: "easeInOut",
+            ease: 'easeInOut',
           }}
         />
         <AnimatedShield size={280} />
@@ -528,7 +868,10 @@ export const Dashboard: React.FC = () => {
         transition={{ delay: 0.4, duration: 0.6 }}
         className='mb-4 relative'
         style={{
-          fontSize: window.innerWidth < 640 ? VIBRANT_TYPOGRAPHY.sizes.display.mobile : VIBRANT_TYPOGRAPHY.sizes.display.size,
+          fontSize:
+            window.innerWidth < 640
+              ? VIBRANT_TYPOGRAPHY.sizes.display.mobile
+              : VIBRANT_TYPOGRAPHY.sizes.display.size,
           lineHeight: VIBRANT_TYPOGRAPHY.sizes.display.lineHeight,
           fontWeight: VIBRANT_TYPOGRAPHY.weights.black,
           fontFamily: VIBRANT_TYPOGRAPHY.fonts.display,
@@ -576,18 +919,28 @@ export const Dashboard: React.FC = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <motion.span 
+          <motion.span
             className='relative z-10 flex items-center justify-center gap-2'
             initial={{ x: 0 }}
             whileHover={{ x: 5 }}
             transition={{ duration: 0.2 }}
           >
             Start Guardian Setup
-            <svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={3} d='M13 7l5 5m0 0l-5 5m5-5H6' />
+            <svg
+              className='w-5 h-5'
+              fill='none'
+              viewBox='0 0 24 24'
+              stroke='currentColor'
+            >
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={3}
+                d='M13 7l5 5m0 0l-5 5m5-5H6'
+              />
             </svg>
           </motion.span>
-          
+
           {/* Hover ripple effect */}
           <motion.div
             className='absolute inset-0 opacity-0'

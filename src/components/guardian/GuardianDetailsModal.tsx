@@ -1,7 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, Phone, Wallet } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { VIBRANT_GRADIENTS } from '../../constants/vibrant-design-system';
 
 interface GuardianDetailsProps {
   guardian: {
@@ -22,9 +24,27 @@ interface GuardianDetailsProps {
 }
 
 const GUARDIAN_TYPE_CONFIG = {
-  EMAIL: { icon: '📧', label: 'Email Guardian' },
-  PHONE: { icon: '📱', label: 'Phone Guardian' },
-  WALLET: { icon: '🔐', label: 'Wallet Guardian' }
+  EMAIL: { 
+    icon: Mail, 
+    label: 'Email Guardian',
+    bgColor: 'bg-blue-100',
+    iconColor: 'text-blue-600',
+    gradient: VIBRANT_GRADIENTS.emailType
+  },
+  PHONE: { 
+    icon: Phone, 
+    label: 'Phone Guardian',
+    bgColor: 'bg-green-100',
+    iconColor: 'text-green-600',
+    gradient: VIBRANT_GRADIENTS.phoneType
+  },
+  WALLET: { 
+    icon: Wallet, 
+    label: 'Wallet Guardian',
+    bgColor: 'bg-purple-100',
+    iconColor: 'text-purple-600',
+    gradient: VIBRANT_GRADIENTS.walletType
+  }
 };
 
 export const GuardianDetailsModal: React.FC<GuardianDetailsProps> = ({
@@ -64,8 +84,10 @@ export const GuardianDetailsModal: React.FC<GuardianDetailsProps> = ({
               {/* Header */}
               <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 -m-6 mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                    <span className="text-3xl">{typeConfig.icon}</span>
+                  <div className="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center">
+                    {React.createElement(typeConfig.icon, {
+                      className: "w-8 h-8 text-white"
+                    })}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-bold">{guardian.name}</h3>

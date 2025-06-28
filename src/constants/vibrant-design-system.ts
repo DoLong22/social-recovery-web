@@ -3,7 +3,7 @@ export const VIBRANT_COLORS = {
   electricBlue: '#00A3FF',
   deepViolet: '#6A0DAD',
   cosmicNavy: '#1A0033',
-  glowGreen: '#39FF14',
+  glowGreen: '#10B981',
   neonPurple: '#A300FF',
   radiantOrange: '#FF7F00',
   
@@ -11,8 +11,8 @@ export const VIBRANT_COLORS = {
   electricTeal: '#00CED1',
   vibrantCerulean: '#007BFF',
   electricIndigo: '#5E00FF',
-  vibrantEmerald: '#00E676',
-  electricLime: '#6EFF00',
+  vibrantEmerald: '#10B981',
+  electricLime: '#22C55E',
   sunsetRed: '#FF4500',
   vibrantScarlet: '#FF4D4D',
   electricYellow: '#FFD700',
@@ -23,12 +23,13 @@ export const VIBRANT_COLORS = {
   pureWhite: '#FFFFFF',
   lightGrey: '#F8F8FA',
   coolBlueGrey: '#EFEFF5',
+  mutedGray: '#9CA3AF',
   
   // Semantic Colors
   success: {
-    light: '#E8FCE8',
-    main: '#00C853',
-    dark: '#006400',
+    light: '#D1FAE5',
+    main: '#10B981',
+    dark: '#047857',
   },
   warning: {
     light: '#FFF8E1',
@@ -57,19 +58,20 @@ export const VIBRANT_GRADIENTS = {
   
   // Card Gradients
   emailType: 'linear-gradient(135deg, #00A3FF 0%, #6A0DAD 100%)',
-  phoneType: 'linear-gradient(135deg, #00E676 0%, #6EFF00 100%)',
+  phoneType: 'linear-gradient(135deg, #10B981 0%, #22C55E 100%)',
   walletType: 'linear-gradient(135deg, #FF7F00 0%, #FF4500 100%)',
   
   // Status Gradients
-  successGradient: 'linear-gradient(135deg, #00E676 0%, #6EFF00 100%)',
+  successGradient: 'linear-gradient(135deg, #10B981 0%, #22C55E 100%)',
   warningGradient: 'linear-gradient(135deg, #FFB300 0%, #FF6F00 100%)',
   
   // Background Gradients
   modalHeader: 'linear-gradient(135deg, #F0F8FF 0%, #FFFFFF 100%)',
   lightBackground: 'linear-gradient(180deg, #F8F8FA 0%, #EFEFF5 100%)',
+  darkCommandCenter: 'linear-gradient(135deg, #1A0033 0%, #6A0DAD 100%)',
   
   // Shield Gradients
-  shieldCore: 'linear-gradient(135deg, #39FF14 0%, #00A3FF 100%)',
+  shieldCore: 'linear-gradient(135deg, #10B981 0%, #00A3FF 100%)',
   
   // Text Gradients
   headlineGradient: 'linear-gradient(135deg, #FFFFFF 0%, #E0E0E0 100%)',
@@ -78,7 +80,7 @@ export const VIBRANT_GRADIENTS = {
 export const VIBRANT_SHADOWS = {
   // Glowing Shadows (reduced intensity)
   primaryGlow: '0px 4px 12px rgba(0, 123, 255, 0.2), 0px 2px 6px rgba(94, 0, 255, 0.15)',
-  successGlow: '0px 4px 12px rgba(0, 230, 118, 0.2), 0px 2px 6px rgba(110, 255, 0, 0.15)',
+  successGlow: '0px 4px 12px rgba(16, 185, 129, 0.2), 0px 2px 6px rgba(34, 197, 94, 0.15)',
   warningGlow: '0px 4px 12px rgba(255, 127, 0, 0.2), 0px 2px 6px rgba(255, 69, 0, 0.15)',
   
   // Card Shadows (more subtle)
@@ -88,7 +90,7 @@ export const VIBRANT_SHADOWS = {
   // Colored Shadows (reduced)
   blueGlow: '0px 4px 12px rgba(0, 163, 255, 0.15)',
   purpleGlow: '0px 4px 12px rgba(163, 0, 255, 0.15)',
-  greenGlow: '0px 4px 12px rgba(57, 255, 20, 0.15)',
+  greenGlow: '0px 4px 12px rgba(16, 185, 129, 0.15)',
   orangeGlow: '0px 4px 12px rgba(255, 127, 0, 0.15)',
 };
 

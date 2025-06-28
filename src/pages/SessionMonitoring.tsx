@@ -11,6 +11,7 @@ import { getTimeSinceDate, formatGuardianDisplay } from '../utils/guardianHelper
 import { VIBRANT_COLORS, VIBRANT_GRADIENTS, VIBRANT_SHADOWS, VIBRANT_TYPOGRAPHY } from '../constants/vibrant-design-system';
 import { GuardianSetupFlow } from '../utils/guardianSetupFlow';
 import { FrontendSaltService } from '../utils/saltDerivation';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 
 export const SessionMonitoring: React.FC = () => {
@@ -67,7 +68,10 @@ export const SessionMonitoring: React.FC = () => {
   // State for master password input
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [masterPassword, setMasterPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Handle completing the setup with new dual-salt API
   const handleCompleteSetup = useCallback(async () => {
@@ -130,6 +134,16 @@ export const SessionMonitoring: React.FC = () => {
       return;
     }
 
+    if (!confirmPassword.trim()) {
+      setPasswordError('Please confirm your password');
+      return;
+    }
+
+    if (masterPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
     try {
       // Validate password strength
       FrontendSaltService.validatePasswordStrength(masterPassword);
@@ -142,7 +156,7 @@ export const SessionMonitoring: React.FC = () => {
     } catch (error) {
       setPasswordError(error instanceof Error ? error.message : 'Invalid password');
     }
-  }, [masterPassword, handleCompleteSetup]);
+  }, [masterPassword, confirmPassword, handleCompleteSetup]);
 
   // Check if setup is truly completed (status = COMPLETED) and redirect
   React.useEffect(() => {
@@ -195,13 +209,13 @@ export const SessionMonitoring: React.FC = () => {
 
   return (
     <div 
-      className="h-full flex flex-col relative"
+      className="min-h-full flex flex-col relative"
       style={{
         background: VIBRANT_GRADIENTS.lightBackground,
       }}
     >
       {/* Subtle geometric pattern overlay */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div 
           className="absolute inset-0"
           style={{
@@ -211,16 +225,17 @@ export const SessionMonitoring: React.FC = () => {
         />
       </div>
 
-      {/* Vibrant Header */}
+      {/* Vibrant Header - Dynamic Progress Hub */}
       <motion.div 
-        className="px-4 sm:px-6 pt-safe-top pb-6 border-b relative overflow-hidden"
+        className="px-4 sm:px-6 pt-safe-top pb-8 border-b relative overflow-hidden flex-shrink-0"
         style={{
-          background: `linear-gradient(135deg, ${VIBRANT_COLORS.electricBlue} 0%, ${VIBRANT_COLORS.neonPurple} 100%)`,
+          background: `linear-gradient(135deg, ${stillWaitingFor === 0 ? VIBRANT_COLORS.vibrantEmerald : VIBRANT_COLORS.electricBlue} 0%, ${stillWaitingFor === 0 ? VIBRANT_COLORS.electricLime : VIBRANT_COLORS.neonPurple} 100%)`,
           borderColor: 'rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 8px 32px rgba(163, 0, 255, 0.3)'
+          boxShadow: stillWaitingFor === 0 ? '0 8px 32px rgba(0, 230, 118, 0.4)' : '0 8px 32px rgba(163, 0, 255, 0.3)'
         }}
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6 }}
       >
         {/* Dynamic background pattern */}
         <div className='absolute inset-0 overflow-hidden'>
@@ -266,11 +281,11 @@ export const SessionMonitoring: React.FC = () => {
         </div>
         
         <div className="relative flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <motion.h1 
-              className="font-black mb-2"
+              className="font-black mb-3"
               style={{
-                fontSize: '28px',
+                fontSize: '32px',
                 color: VIBRANT_COLORS.pureWhite,
                 textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
                 fontFamily: VIBRANT_TYPOGRAPHY.fonts.display
@@ -281,15 +296,60 @@ export const SessionMonitoring: React.FC = () => {
             >
               Waiting for Guardians
             </motion.h1>
-            <motion.p 
-              className="text-sm"
-              style={{ color: VIBRANT_COLORS.softWhite }}
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
+            
+            {/* Hero Status Section - Dynamic Numbers */}
+            <motion.div 
+              className="mb-4"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
             >
-              Your trusted network is responding to secure your wallet
-            </motion.p>
+              <div className="flex items-center gap-3 mb-2">
+                <motion.span 
+                  className="font-black"
+                  style={{
+                    fontSize: '42px',
+                    color: stillWaitingFor === 0 ? VIBRANT_COLORS.electricLime : VIBRANT_COLORS.electricTeal,
+                    textShadow: '0 2px 15px rgba(0, 0, 0, 0.4)',
+                    fontFamily: VIBRANT_TYPOGRAPHY.fonts.display
+                  }}
+                  key={totalResponded}
+                  initial={{ scale: 1.2 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 300 }}
+                >
+                  {totalResponded}
+                </motion.span>
+                <span 
+                  className="font-bold text-2xl"
+                  style={{ color: VIBRANT_COLORS.softWhite }}
+                >
+                  of {totalInvitations} responded
+                </span>
+                {stillWaitingFor === 0 && (
+                  <motion.span
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                    className="text-2xl"
+                  >
+                    ✨
+                  </motion.span>
+                )}
+              </div>
+              <motion.p 
+                className="text-base font-medium"
+                style={{ color: VIBRANT_COLORS.softWhite }}
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                {stillWaitingFor > 0 
+                  ? `${acceptedCount} accepted • Waiting for ${stillWaitingFor} more ${stillWaitingFor === 1 ? 'response' : 'responses'}`
+                  : `🎉 All guardians have responded! ${acceptedCount} accepted`
+                }
+              </motion.p>
+            </motion.div>
           </div>
           <motion.button 
             onClick={() => navigate('/dashboard')}
@@ -315,162 +375,343 @@ export const SessionMonitoring: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        {/* Central Status Area - Focal Point */}
+      {/* Content - Dynamic Progress Hub */}
+      <div className="flex-1 overflow-x-hidden pb-6">
+        {/* Guardian Avatar Grid - Visual Progress Tracker */}
         <motion.div 
-          className="mx-4 sm:mx-6 mt-6 mb-6 rounded-2xl p-8 relative overflow-hidden"
+          className="mx-4 sm:mx-6 mt-6 mb-6 rounded-3xl p-8 relative overflow-hidden"
           style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1), 0 8px 20px rgba(0, 0, 0, 0.06)',
-            border: '1px solid rgba(255, 255, 255, 0.3)'
+            background: 'linear-gradient(135deg, #F8F8FA 0%, #EFEFF5 100%)',
+            boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15), 0 12px 30px rgba(0, 0, 0, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.8)'
           }}
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.6, type: 'spring', stiffness: 100 }}
         >
-          {/* Floating effect background */}
-          <div 
-            className="absolute inset-0 opacity-5"
-            style={{
-              background: `radial-gradient(circle at center, ${stillWaitingFor === 0 ? VIBRANT_COLORS.vibrantEmerald : VIBRANT_COLORS.electricTeal} 0%, transparent 70%)`,
-            }}
-          />
-          {/* Dynamic status indicator */}
-          {stillWaitingFor > 0 && (
+          {/* Subtle geometric pattern overlay */}
+          <div className="absolute inset-0 opacity-5">
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(circle at 25% 25%, ${stillWaitingFor === 0 ? VIBRANT_COLORS.vibrantEmerald : VIBRANT_COLORS.electricTeal} 0%, transparent 50%),
+                           radial-gradient(circle at 75% 75%, ${stillWaitingFor === 0 ? VIBRANT_COLORS.electricLime : VIBRANT_COLORS.electricBlue} 0%, transparent 50%)`,
+              }}
+            />
+          </div>
+          
+          {/* Live Processing Indicator */}
+          <div className="absolute top-6 right-6 flex items-center gap-2">
             <motion.div
-              className="absolute top-4 right-4 w-3 h-3 rounded-full"
-              style={{ background: VIBRANT_COLORS.radiantOrange }}
-              animate={{
-                scale: [1, 1.3, 1],
+              className="w-2 h-2 rounded-full"
+              style={{ background: stillWaitingFor > 0 ? VIBRANT_COLORS.radiantOrange : VIBRANT_COLORS.vibrantEmerald }}
+              animate={stillWaitingFor > 0 ? {
+                scale: [1, 1.4, 1],
                 opacity: [0.7, 1, 0.7],
+              } : {
+                scale: [1, 1.2, 1],
+                opacity: [0.8, 1, 0.8],
               }}
               transition={{
-                duration: 2,
+                duration: stillWaitingFor > 0 ? 2 : 3,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
             />
-          )}
+            <span 
+              className="text-xs font-medium"
+              style={{ color: VIBRANT_COLORS.mutedGray }}
+            >
+              {stillWaitingFor > 0 ? 'Processing...' : 'Complete'}
+            </span>
+          </div>
           
-          <div className="relative text-center mb-8">
+          <div className="relative text-center">
+            {/* Main Status Display */}
             <motion.div 
-              className="font-black mb-3"
-              style={{
-                fontSize: '22px',
-                color: stillWaitingFor === 0 ? VIBRANT_COLORS.vibrantEmerald : VIBRANT_COLORS.electricTeal,
-                fontFamily: VIBRANT_TYPOGRAPHY.fonts.display
-              }}
+              className="mb-8"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.6, type: 'spring' }}
+              transition={{ delay: 0.7, type: 'spring', stiffness: 200 }}
             >
-              {stillWaitingFor > 0 ? (
-                <>
-                  <motion.span
-                    animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    className="inline-block mr-2"
-                  >
-                    ⏳
-                  </motion.span>
-                  Waiting for {stillWaitingFor} {stillWaitingFor === 1 ? 'response' : 'responses'}
-                </>
-              ) : (
-                <>
-                  <motion.span
-                    animate={{ rotate: [0, 15, -15, 0] }}
-                    transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
-                    className="inline-block mr-2"
-                  >
-                    🎉
-                  </motion.span>
-                  All guardians responded!
-                </>
-              )}
-            </motion.div>
-            <motion.div 
-              className="text-base font-medium"
-              style={{ color: VIBRANT_COLORS.darkCarbon }}
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.7 }}
-            >
-              {totalResponded} of {totalInvitations} responded • {acceptedCount} accepted
+              <motion.h2 
+                className="font-black mb-4"
+                style={{
+                  fontSize: '28px',
+                  color: stillWaitingFor === 0 ? VIBRANT_COLORS.vibrantEmerald : VIBRANT_COLORS.electricTeal,
+                  fontFamily: VIBRANT_TYPOGRAPHY.fonts.display
+                }}
+                key={stillWaitingFor}
+                initial={{ y: -10 }}
+                animate={{ y: 0 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              >
+                {stillWaitingFor > 0 ? (
+                  <span className="flex items-center justify-center gap-3">
+                    <motion.span
+                      animate={{ rotate: [0, 360] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                      className="text-3xl"
+                    >
+                      ⏳
+                    </motion.span>
+                    Waiting for {stillWaitingFor} {stillWaitingFor === 1 ? 'response' : 'responses'}
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-3">
+                    <motion.span
+                      animate={{ 
+                        rotate: [0, 15, -15, 0],
+                        scale: [1, 1.1, 1] 
+                      }}
+                      transition={{ 
+                        duration: 0.6, 
+                        repeat: Infinity, 
+                        repeatDelay: 3 
+                      }}
+                      className="text-3xl"
+                    >
+                      🎉
+                    </motion.span>
+                    All guardians responded!
+                  </span>
+                )}
+              </motion.h2>
+              
+              {/* Counter Display */}
+              <motion.div 
+                className="flex items-center justify-center gap-2 text-lg font-bold"
+                style={{ color: VIBRANT_COLORS.darkCarbon }}
+              >
+                <motion.span
+                  key={totalResponded}
+                  initial={{ scale: 1.3, color: VIBRANT_COLORS.electricTeal }}
+                  animate={{ scale: 1, color: VIBRANT_COLORS.darkCarbon }}
+                  transition={{ type: 'spring', stiffness: 300 }}
+                >
+                  {totalResponded}
+                </motion.span>
+                <span>of {totalInvitations} responded</span>
+                <span>•</span>
+                <motion.span
+                  key={acceptedCount}
+                  initial={{ scale: 1.3, color: VIBRANT_COLORS.vibrantEmerald }}
+                  animate={{ scale: 1, color: VIBRANT_COLORS.vibrantEmerald }}
+                  transition={{ type: 'spring', stiffness: 300 }}
+                >
+                  {acceptedCount} accepted
+                </motion.span>
+              </motion.div>
             </motion.div>
           </div>
 
-          {/* Stylized Guardian Avatar Placeholders */}
-          <div className="flex justify-center gap-4 mb-8">
-            {Array.from({ length: totalInvitations }).map((_, index) => {
-              let status = 'pending';
-              if (index < acceptedCount) {
-                status = 'accepted';
-              } else if (index < totalResponded) {
-                status = 'declined';
-              }
-              
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ scale: 0, y: 20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  transition={{ delay: 0.8 + index * 0.1, type: 'spring', stiffness: 200 }}
-                  className="relative"
-                >
+          {/* Advanced Guardian Avatar Grid - Connected Flow */}
+          <div className="relative mb-8">
+            {/* Connection Lines Background */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg 
+                width="100%" 
+                height="80" 
+                className="absolute"
+                style={{ zIndex: 1 }}
+              >
+                {Array.from({ length: totalInvitations - 1 }).map((_, index) => (
+                  <motion.line
+                    key={index}
+                    x1={`${20 + (index * 60)}%`}
+                    y1="50%"
+                    x2={`${20 + ((index + 1) * 60)}%`}
+                    y2="50%"
+                    stroke={index < acceptedCount - 1 ? VIBRANT_COLORS.vibrantEmerald : 'rgba(0, 163, 255, 0.2)'}
+                    strokeWidth="3"
+                    strokeDasharray={index < acceptedCount - 1 ? "0" : "8,4"}
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ delay: 1.2 + index * 0.2, duration: 0.8 }}
+                  />
+                ))}
+              </svg>
+            </div>
+            
+            {/* Guardian Avatars */}
+            <div className="relative flex justify-center gap-6" style={{ zIndex: 2 }}>
+              {Array.from({ length: totalInvitations }).map((_, index) => {
+                let status = 'pending';
+                if (index < acceptedCount) {
+                  status = 'accepted';
+                } else if (index < totalResponded) {
+                  status = 'declined';
+                }
+                
+                return (
                   <motion.div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-lg relative overflow-hidden"
-                    style={{
-                      background: status === 'accepted' 
-                        ? `linear-gradient(135deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)`
-                        : status === 'declined' 
-                          ? `linear-gradient(135deg, ${VIBRANT_COLORS.radiantOrange} 0%, ${VIBRANT_COLORS.vibrantScarlet} 100%)`
-                          : 'rgba(0, 163, 255, 0.1)',
-                      color: status === 'pending' ? VIBRANT_COLORS.electricBlue : VIBRANT_COLORS.pureWhite,
-                      border: status === 'pending' ? `2px solid ${VIBRANT_COLORS.electricBlue}40` : 'none',
-                      boxShadow: status === 'accepted' 
-                        ? '0 8px 25px rgba(0, 230, 118, 0.4)' 
-                        : status === 'declined' 
-                          ? '0 8px 25px rgba(255, 127, 0, 0.4)'
-                          : '0 4px 15px rgba(0, 163, 255, 0.2)',
-                      backdropFilter: status === 'pending' ? 'blur(10px)' : 'none'
-                    }}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    animate={status === 'accepted' ? {
-                      boxShadow: [
-                        '0 8px 25px rgba(0, 230, 118, 0.4)',
-                        '0 8px 25px rgba(0, 230, 118, 0.6)',
-                        '0 8px 25px rgba(0, 230, 118, 0.4)'
-                      ]
-                    } : {}}
-                    transition={{
-                      boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                    }}
+                    key={index}
+                    initial={{ scale: 0, y: 30 }}
+                    animate={{ scale: 1, y: 0 }}
+                    transition={{ delay: 0.9 + index * 0.15, type: 'spring', stiffness: 200 }}
+                    className="relative flex flex-col items-center"
                   >
-                    {/* Frosted glass effect for pending */}
-                    {status === 'pending' && (
-                      <div 
-                        className="absolute inset-0 rounded-2xl"
+                    {/* Avatar Circle */}
+                    <motion.div
+                      className="w-18 h-18 rounded-2xl flex items-center justify-center font-black text-xl relative overflow-hidden"
+                      style={{
+                        background: status === 'accepted' 
+                          ? `linear-gradient(135deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)`
+                          : status === 'declined' 
+                            ? `linear-gradient(135deg, ${VIBRANT_COLORS.radiantOrange} 0%, ${VIBRANT_COLORS.vibrantScarlet} 100%)`
+                            : 'rgba(255, 255, 255, 0.9)',
+                        color: status === 'pending' ? VIBRANT_COLORS.electricBlue : VIBRANT_COLORS.pureWhite,
+                        border: status === 'pending' ? `3px solid ${VIBRANT_COLORS.electricBlue}` : 'none',
+                        boxShadow: status === 'accepted' 
+                          ? '0 12px 30px rgba(0, 230, 118, 0.5), 0 4px 15px rgba(0, 230, 118, 0.3)' 
+                          : status === 'declined' 
+                            ? '0 12px 30px rgba(255, 127, 0, 0.5), 0 4px 15px rgba(255, 127, 0, 0.3)'
+                            : '0 8px 20px rgba(0, 163, 255, 0.25), 0 3px 10px rgba(0, 163, 255, 0.15)',
+                        backdropFilter: status === 'pending' ? 'blur(15px)' : 'none'
+                      }}
+                      whileHover={{ scale: 1.1, rotate: 8 }}
+                      animate={status === 'accepted' ? {
+                        boxShadow: [
+                          '0 12px 30px rgba(0, 230, 118, 0.5), 0 4px 15px rgba(0, 230, 118, 0.3)',
+                          '0 12px 30px rgba(0, 230, 118, 0.7), 0 4px 15px rgba(0, 230, 118, 0.5)',
+                          '0 12px 30px rgba(0, 230, 118, 0.5), 0 4px 15px rgba(0, 230, 118, 0.3)'
+                        ]
+                      } : status === 'pending' ? {
+                        y: [-2, 2, -2],
+                      } : {}}
+                      transition={{
+                        boxShadow: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
+                        y: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+                      }}
+                    >
+                      {/* Frosted glass effect for pending */}
+                      {status === 'pending' && (
+                        <motion.div 
+                          className="absolute inset-0 rounded-2xl"
+                          style={{
+                            background: `linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 100%)`,
+                            backdropFilter: 'blur(15px)'
+                          }}
+                          animate={{
+                            opacity: [0.7, 1, 0.7],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      )}
+                      
+                      {/* Content - Enhanced Icons */}
+                      <div className="relative z-10 flex items-center justify-center">
+                        {status === 'accepted' ? (
+                          <motion.span
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
+                            className="text-2xl"
+                          >
+                            ✓
+                          </motion.span>
+                        ) : status === 'declined' ? (
+                          <motion.span
+                            initial={{ scale: 0, rotate: 180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
+                            className="text-2xl"
+                          >
+                            ✗
+                          </motion.span>
+                        ) : (
+                          <motion.span
+                            className="font-black text-lg"
+                            animate={{
+                              scale: [1, 1.1, 1],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                            }}
+                          >
+                            {index + 1}
+                          </motion.span>
+                        )}
+                      </div>
+                      
+                      {/* Sparkling success animation for accepted */}
+                      {status === 'accepted' && (
+                        <>
+                          <motion.div
+                            className="absolute inset-2 rounded-xl opacity-40"
+                            style={{ background: `linear-gradient(135deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)` }}
+                            animate={{
+                              opacity: [0.4, 0.7, 0.4],
+                            }}
+                            transition={{
+                              duration: 2.5,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                            }}
+                          />
+                          {/* Sparkling particles */}
+                          {[...Array(3)].map((_, sparkleIndex) => (
+                            <motion.div
+                              key={sparkleIndex}
+                              className="absolute w-1 h-1 bg-white rounded-full"
+                              style={{
+                                top: `${20 + Math.random() * 60}%`,
+                                left: `${20 + Math.random() * 60}%`,
+                              }}
+                              animate={{
+                                opacity: [0, 1, 0],
+                                scale: [0, 1, 0],
+                              }}
+                              transition={{
+                                duration: 1.5,
+                                repeat: Infinity,
+                                delay: sparkleIndex * 0.5,
+                                ease: "easeInOut",
+                              }}
+                            />
+                          ))}
+                        </>
+                      )}
+                    </motion.div>
+                    
+                    {/* Status Label */}
+                    <motion.div
+                      className="mt-3 text-center"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.2 + index * 0.1 }}
+                    >
+                      <span 
+                        className="text-xs font-bold px-2 py-1 rounded-full"
                         style={{
-                          background: `linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%)`,
-                          backdropFilter: 'blur(10px)'
+                          backgroundColor: status === 'accepted' 
+                            ? VIBRANT_COLORS.vibrantEmerald
+                            : status === 'declined' 
+                              ? VIBRANT_COLORS.vibrantScarlet
+                              : 'rgba(0, 163, 255, 0.15)',
+                          color: status === 'pending' ? VIBRANT_COLORS.electricBlue : VIBRANT_COLORS.pureWhite
                         }}
-                      />
-                    )}
+                      >
+                        {status === 'accepted' ? 'Accepted' : status === 'declined' ? 'Declined' : 'Waiting...'}
+                      </span>
+                    </motion.div>
                     
-                    {/* Content */}
-                    <div className="relative z-10">
-                      {status === 'accepted' ? '✓' : status === 'declined' ? '✗' : index + 1}
-                    </div>
-                    
-                    {/* Inner glow for accepted */}
-                    {status === 'accepted' && (
+                    {/* Pulse effect for pending */}
+                    {status === 'pending' && (
                       <motion.div
-                        className="absolute inset-2 rounded-xl opacity-30"
-                        style={{ background: `linear-gradient(135deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)` }}
+                        className="absolute inset-0 rounded-2xl pointer-events-none"
+                        style={{
+                          background: `radial-gradient(circle, ${VIBRANT_COLORS.electricBlue}20 0%, transparent 70%)`,
+                        }}
                         animate={{
-                          opacity: [0.3, 0.6, 0.3],
+                          scale: [1, 1.5, 1],
+                          opacity: [0.6, 0, 0.6],
                         }}
                         transition={{
                           duration: 2,
@@ -480,32 +721,283 @@ export const SessionMonitoring: React.FC = () => {
                       />
                     )}
                   </motion.div>
-                  
-                  {/* Pulse effect for pending */}
-                  {status === 'pending' && (
-                    <motion.div
-                      className="absolute inset-0 rounded-2xl"
-                      style={{
-                        background: `radial-gradient(circle, ${VIBRANT_COLORS.electricBlue}30 0%, transparent 70%)`,
-                      }}
-                      animate={{
-                        scale: [1, 1.4, 1],
-                        opacity: [0.5, 0, 0.5],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                    />
-                  )}
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Contextual Action Boxes */}
+          <div className="space-y-4 mb-6">
+            {/* Threshold Reminder */}
+            {acceptedCount < minimumNeeded && (
+              <motion.div 
+                className="rounded-2xl p-5 relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #FFF5E6 0%, #FFE0B2 100%)',
+                  border: `2px solid ${VIBRANT_COLORS.radiantOrange}40`,
+                  boxShadow: '0 8px 25px rgba(255, 127, 0, 0.15)'
+                }}
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 1.4, type: 'spring' }}
+                whileHover={{ scale: 1.02 }}
+              >
+                <div className="flex items-start gap-4">
+                  <motion.div
+                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: VIBRANT_COLORS.radiantOrange }}
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </motion.div>
+                  <div className="flex-1">
+                    <p className="font-bold text-lg mb-2" style={{ color: '#CC6600' }}>
+                      Need at least {minimumNeeded} acceptances to proceed
+                    </p>
+                    <p className="text-sm mb-3" style={{ color: '#996600' }}>
+                      Currently {acceptedCount} of {minimumNeeded} required guardians have accepted
+                    </p>
+                    <div className="flex gap-3">
+                      <ModernButton
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate('/improved-guardian-setup')}
+                        icon={
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                        }
+                      >
+                        Add More Guardians
+                      </ModernButton>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            
+            {/* Reassuring Information */}
+            <motion.div 
+              className="rounded-2xl p-5 relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, #E0FFFF 0%, #C0E0FF 100%)',
+                border: `2px solid ${VIBRANT_COLORS.electricTeal}40`,
+                boxShadow: '0 8px 25px rgba(0, 206, 209, 0.15)'
+              }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 1.6, type: 'spring' }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <div className="flex items-start gap-4">
+                <motion.div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: VIBRANT_COLORS.electricTeal }}
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    boxShadow: [
+                      '0 0 10px rgba(0, 206, 209, 0.3)',
+                      '0 0 20px rgba(0, 206, 209, 0.5)',
+                      '0 0 10px rgba(0, 206, 209, 0.3)'
+                    ]
+                  }}
+                  transition={{ duration: 2.5, repeat: Infinity }}
+                >
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
                 </motion.div>
-              );
-            })}
+                <div className="flex-1">
+                  <p className="font-bold text-lg mb-2" style={{ color: '#004080' }}>
+                    💡 Most guardians respond within 2-4 hours
+                  </p>
+                  <p className="text-sm" style={{ color: '#006699' }}>
+                    Your invitations are being delivered. You'll get real-time notifications as guardians respond.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+            
+            {/* Contact Tip */}
+            <motion.div 
+              className="rounded-2xl p-5 relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, #FFFDE7 0%, #FFF9C4 100%)',
+                border: `2px solid ${VIBRANT_COLORS.electricYellow}40`,
+                boxShadow: '0 8px 25px rgba(255, 255, 0, 0.1)'
+              }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 1.8, type: 'spring' }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <div className="flex items-start gap-4">
+                <motion.div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: '#FFB300' }}
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                >
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </motion.div>
+                <div className="flex-1">
+                  <p className="font-bold text-lg mb-2" style={{ color: '#E65100' }}>
+                    💬 Tip: You can contact your guardians directly
+                  </p>
+                  <p className="text-sm mb-3" style={{ color: '#F57C00' }}>
+                    If needed, reach out personally to explain the Social Recovery request
+                  </p>
+                  <ModernButton
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      // Open native share or messaging
+                      if (navigator.share) {
+                        navigator.share({
+                          title: 'Social Recovery Request',
+                          text: 'I\'ve sent you a Social Recovery invitation to help secure my wallet. Please check your email/messages!'
+                        });
+                      }
+                    }}
+                    icon={
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                      </svg>
+                    }
+                  >
+                    Send Reminder
+                  </ModernButton>
+                </div>
+              </div>
+            </motion.div>
           </div>
 
+          {/* What Happens Next Section */}
+          <motion.div
+            className="rounded-2xl p-6 relative overflow-hidden"
+            style={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)'
+            }}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 2.0, type: 'spring' }}
+          >
+            <motion.h3 
+              className="font-black text-xl mb-6 flex items-center gap-3"
+              style={{ color: VIBRANT_COLORS.darkCarbon, fontFamily: VIBRANT_TYPOGRAPHY.fonts.display }}
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 2.1 }}
+            >
+              <svg className="w-6 h-6" style={{ color: VIBRANT_COLORS.electricTeal }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              What happens next?
+            </motion.h3>
+            
+            <div className="space-y-4">
+              {[
+                {
+                  number: 1,
+                  title: "Guardians receive invitations",
+                  description: "Each guardian gets a secure invitation via their preferred method",
+                  icon: "📧",
+                  gradient: `linear-gradient(135deg, ${VIBRANT_COLORS.electricBlue} 0%, ${VIBRANT_COLORS.neonPurple} 100%)`
+                },
+                {
+                  number: 2,
+                  title: "48-hour response window",
+                  description: "Guardians have 48 hours to accept or decline their invitation",
+                  icon: "⏰",
+                  gradient: `linear-gradient(135deg, ${VIBRANT_COLORS.electricTeal} 0%, ${VIBRANT_COLORS.electricLime} 100%)`
+                },
+                {
+                  number: 3,
+                  title: "Real-time notifications",
+                  description: "You'll receive instant updates as guardians respond",
+                  icon: "🔔",
+                  gradient: `linear-gradient(135deg, ${VIBRANT_COLORS.radiantOrange} 0%, ${VIBRANT_COLORS.electricYellow} 100%)`
+                },
+                {
+                  number: 4,
+                  title: "Setup completes automatically",
+                  description: `Once ${minimumNeeded} guardians accept, your wallet is secured!`,
+                  icon: "✨",
+                  gradient: `linear-gradient(135deg, ${VIBRANT_COLORS.vibrantEmerald} 0%, ${VIBRANT_COLORS.electricLime} 100%)`
+                }
+              ].map((step, index) => (
+                <motion.div
+                  key={step.number}
+                  className="flex items-start gap-4"
+                  initial={{ x: -30, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 2.2 + index * 0.1, type: 'spring' }}
+                >
+                  {/* Number Circle */}
+                  <motion.div
+                    className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white flex-shrink-0"
+                    style={{
+                      background: step.gradient,
+                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)'
+                    }}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    animate={{
+                      boxShadow: [
+                        '0 6px 20px rgba(0, 0, 0, 0.15)',
+                        '0 8px 25px rgba(0, 0, 0, 0.2)',
+                        '0 6px 20px rgba(0, 0, 0, 0.15)'
+                      ]
+                    }}
+                    transition={{
+                      boxShadow: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+                    }}
+                  >
+                    {step.number}
+                  </motion.div>
+                  
+                  {/* Content */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">{step.icon}</span>
+                      <h4 className="font-bold text-base" style={{ color: VIBRANT_COLORS.darkCarbon }}>
+                        {step.title}
+                      </h4>
+                    </div>
+                    <p className="text-sm" style={{ color: VIBRANT_COLORS.mutedGray }}>
+                      {step.description}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            
+            {/* Additional Info */}
+            <motion.div
+              className="mt-6 pt-4 border-t"
+              style={{ borderColor: 'rgba(0, 0, 0, 0.1)' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 2.8 }}
+            >
+              <p className="text-xs flex items-center gap-2" style={{ color: VIBRANT_COLORS.info.dark }}>
+                <svg className="w-4 h-4" style={{ color: VIBRANT_COLORS.electricTeal }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                If a guardian doesn't respond within 48 hours, you can resend the invitation or replace them
+              </p>
+            </motion.div>
+          </motion.div>
+
           {/* Enhanced Status Messages */}
-          <div className="space-y-3 mb-4">
+          <div className="space-y-3 mb-4 mt-6">
             {currentSession.canProceed && (
               <motion.div 
                 className="rounded-xl p-4 text-center"
@@ -1056,73 +1548,209 @@ export const SessionMonitoring: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 w-full max-w-md"
+              className="bg-white rounded-2xl p-6 w-full max-w-md relative overflow-hidden"
+              style={{
+                boxShadow: VIBRANT_SHADOWS.cardHover,
+              }}
             >
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {/* Subtle gradient overlay */}
+              <div 
+                className="absolute inset-0 opacity-5"
+                style={{
+                  background: `radial-gradient(circle at top right, ${VIBRANT_COLORS.electricBlue} 0%, transparent 50%)`,
+                }}
+              />
+              
+              <div className="relative text-center mb-6">
+                <motion.div 
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  style={{
+                    background: VIBRANT_GRADIENTS.primaryAction,
+                    boxShadow: VIBRANT_SHADOWS.blueGlow,
+                  }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1, rotate: 360 }}
+                  transition={{ duration: 0.5, type: 'spring' }}
+                >
+                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                </motion.div>
+                <h3 className="text-xl font-black mb-2" style={{ 
+                  fontFamily: VIBRANT_TYPOGRAPHY.fonts.display,
+                  color: VIBRANT_COLORS.darkCarbon 
+                }}>
                   Enter Master Password
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm" style={{ color: VIBRANT_COLORS.mutedGray }}>
                   Your master password is needed to encrypt recovery shares with zero-knowledge security.
                 </p>
               </div>
 
-              <div className="space-y-4">
+              <div className="relative space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-bold mb-2" style={{ color: VIBRANT_COLORS.darkCarbon }}>
                     Master Password
                   </label>
-                  <input
-                    type="password"
-                    value={masterPassword}
-                    onChange={(e) => {
-                      setMasterPassword(e.target.value);
-                      setPasswordError('');
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handlePasswordSubmit();
-                      }
-                    }}
-                    placeholder="Enter your secure master password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    autoFocus
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={masterPassword}
+                      onChange={(e) => {
+                        setMasterPassword(e.target.value);
+                        setPasswordError('');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !confirmPassword) {
+                          document.getElementById('confirmPassword')?.focus();
+                        }
+                      }}
+                      placeholder="Enter your secure master password"
+                      className="w-full px-4 py-3 pr-12 border-2 rounded-xl transition-all duration-300"
+                      style={{
+                        borderColor: passwordError ? VIBRANT_COLORS.vibrantScarlet : '#E5E7EB',
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        fontSize: '16px',
+                      }}
+                      onFocus={(e) => {
+                        if (!passwordError) {
+                          e.target.style.borderColor = VIBRANT_COLORS.electricBlue;
+                          e.target.style.boxShadow = VIBRANT_SHADOWS.blueGlow;
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (!passwordError) {
+                          e.target.style.borderColor = '#E5E7EB';
+                          e.target.style.boxShadow = 'none';
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all duration-200"
+                      style={{ color: VIBRANT_COLORS.mutedGray }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = VIBRANT_COLORS.electricBlue;
+                        e.currentTarget.style.backgroundColor = 'rgba(0, 163, 255, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = VIBRANT_COLORS.mutedGray;
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold mb-2" style={{ color: VIBRANT_COLORS.darkCarbon }}>
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setPasswordError('');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handlePasswordSubmit();
+                        }
+                      }}
+                      placeholder="Confirm your master password"
+                      className="w-full px-4 py-3 pr-12 border-2 rounded-xl transition-all duration-300"
+                      style={{
+                        borderColor: passwordError ? VIBRANT_COLORS.vibrantScarlet : '#E5E7EB',
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        fontSize: '16px',
+                      }}
+                      onFocus={(e) => {
+                        if (!passwordError) {
+                          e.target.style.borderColor = VIBRANT_COLORS.electricBlue;
+                          e.target.style.boxShadow = VIBRANT_SHADOWS.blueGlow;
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (!passwordError) {
+                          e.target.style.borderColor = '#E5E7EB';
+                          e.target.style.boxShadow = 'none';
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all duration-200"
+                      style={{ color: VIBRANT_COLORS.mutedGray }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = VIBRANT_COLORS.electricBlue;
+                        e.currentTarget.style.backgroundColor = 'rgba(0, 163, 255, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = VIBRANT_COLORS.mutedGray;
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                   {passwordError && (
-                    <p className="text-red-600 text-xs mt-1">{passwordError}</p>
+                    <motion.p 
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-xs mt-2 flex items-center gap-1"
+                      style={{ color: VIBRANT_COLORS.vibrantScarlet }}
+                    >
+                      <AlertCircle className="w-4 h-4" />
+                      {passwordError}
+                    </motion.p>
                   )}
                 </div>
 
-                <div className="bg-yellow-50 rounded-lg p-3">
-                  <p className="text-xs text-yellow-800">
+                <motion.div 
+                  className="rounded-xl p-4"
+                  style={{
+                    background: `linear-gradient(135deg, ${VIBRANT_COLORS.info.light} 0%, rgba(224, 255, 255, 0.6) 100%)`,
+                    border: `1px solid ${VIBRANT_COLORS.electricTeal}40`,
+                  }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <p className="text-xs" style={{ color: VIBRANT_COLORS.info.dark }}>
                     <strong>Requirements:</strong> 12+ characters with uppercase, lowercase, numbers, and special characters
                   </p>
-                </div>
+                </motion.div>
 
                 <div className="flex space-x-3">
-                  <Button
-                    variant="secondary"
+                  <ModernButton
+                    variant="ghost"
                     onClick={() => {
                       setShowPasswordPrompt(false);
                       setMasterPassword('');
+                      setConfirmPassword('');
                       setPasswordError('');
+                      setShowPassword(false);
+                      setShowConfirmPassword(false);
                     }}
                     fullWidth
                   >
                     Cancel
-                  </Button>
-                  <Button
+                  </ModernButton>
+                  <ModernButton
                     onClick={handlePasswordSubmit}
                     fullWidth
-                    disabled={!masterPassword.trim()}
+                    disabled={!masterPassword.trim() || !confirmPassword.trim()}
+                    variant="primary"
                   >
                     Continue
-                  </Button>
+                  </ModernButton>
                 </div>
               </div>
             </motion.div>

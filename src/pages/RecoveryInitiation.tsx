@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Unlock, AlertTriangle, Smartphone, Globe, Chrome, ArrowRight, ChevronDown, Key, Clock } from 'lucide-react';
 import { recoveryApi, getDeviceInfo } from '../api/recovery';
 import { useToast } from '../contexts/ToastContext';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
+// Removed unused imports
+import {
+  VIBRANT_COLORS,
+  VIBRANT_GRADIENTS,
+  VIBRANT_SHADOWS,
+  VIBRANT_TYPOGRAPHY,
+} from '../constants/vibrant-design-system';
 
 export const RecoveryInitiation: React.FC = () => {
   const navigate = useNavigate();
@@ -45,141 +51,394 @@ export const RecoveryInitiation: React.FC = () => {
   };
 
   return (
-    <div className="h-full bg-gradient-to-b from-gray-50 to-white p-4">
+    <div className="h-full relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #F8F8FA 0%, #EFEFF5 100%)' }}>
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          animate={{
+            x: [0, 50, 0],
+            y: [0, -30, 0],
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute top-10 right-10 w-64 h-64 rounded-full blur-3xl opacity-10"
+          style={{ background: VIBRANT_GRADIENTS.primaryAction }}
+        />
+        <motion.div
+          animate={{
+            x: [0, -50, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute bottom-10 left-10 w-96 h-96 rounded-full blur-3xl opacity-10"
+          style={{ background: VIBRANT_GRADIENTS.ctaOrange }}
+        />
+      </div>
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-md mx-auto"
+        className="relative z-10 h-full overflow-y-auto"
       >
-        {/* Header */}
-        <div className="text-center mb-8">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200 }}
-            className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
-          >
-            <svg className="w-10 h-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
-            </svg>
-          </motion.div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Recover Your Wallet</h1>
-          <p className="text-gray-600">Request help from your guardians to regain access</p>
-        </div>
-
-        {/* Warning Card */}
-        <Card className="mb-6 bg-amber-50 border-amber-200">
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0">
-              <svg className="w-5 h-5 text-amber-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" 
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" 
-                  clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-amber-800">Before You Continue</h3>
-              <ul className="mt-1 text-xs text-amber-700 space-y-1">
-                <li>• This will notify all your guardians via email</li>
-                <li>• You'll need your master password to complete recovery</li>
-                <li>• Recovery expires after 24 hours</li>
-              </ul>
-            </div>
-          </div>
-        </Card>
-
-        {/* Device Information */}
-        <Card className="mb-6">
-          <h3 className="font-medium text-gray-900 mb-3">Recovery will be initiated from:</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Device:</span>
-              <span className="text-gray-900 font-medium">
-                {navigator.userAgent.includes('Mobile') ? '📱 Mobile' : '💻 Desktop'} Browser
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Platform:</span>
-              <span className="text-gray-900 font-medium">Web</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Browser:</span>
-              <span className="text-gray-900 font-medium">
-                {navigator.userAgent.includes('Chrome') ? 'Chrome' : 
-                 navigator.userAgent.includes('Firefox') ? 'Firefox' : 
-                 navigator.userAgent.includes('Safari') ? 'Safari' : 'Other'}
-              </span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Reason Input (Optional) */}
-        <div className="mb-6">
-          <button
-            onClick={() => setShowReasonInput(!showReasonInput)}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center"
-          >
-            {showReasonInput ? 'Hide' : 'Add'} recovery reason (optional)
-            <svg 
-              className={`w-4 h-4 ml-1 transform transition-transform ${showReasonInput ? 'rotate-180' : ''}`} 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          
-          {showReasonInput && (
+        <div className="max-w-xl mx-auto p-6">
+          {/* Header */}
+          <div className="text-center mb-10">
+            {/* Hero Icon */}
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-3"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              className="relative w-28 h-28 mx-auto mb-6"
             >
-              <textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="e.g., Lost access to phone, Forgot password, etc."
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                rows={3}
+              {/* Background Circle with Gradient */}
+              <div 
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0, 163, 255, 0.1) 0%, rgba(163, 0, 255, 0.1) 100%)',
+                  boxShadow: 'inset 0 2px 10px rgba(0, 0, 0, 0.05)',
+                }}
               />
+              
+              {/* Animated Glow */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.5, 0.8, 0.5],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: 'linear-gradient(135deg, #00A3FF 0%, #A300FF 100%)',
+                  filter: 'blur(20px)',
+                }}
+              />
+              
+              {/* Icon Container */}
+              <motion.div
+                animate={{
+                  y: [0, -5, 0],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="relative w-full h-full rounded-full flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, #00A3FF 0%, #A300FF 100%)',
+                  boxShadow: VIBRANT_SHADOWS.primaryGlow,
+                }}
+              >
+                <Unlock className="w-14 h-14 text-white" strokeWidth={2.5} />
+              </motion.div>
             </motion.div>
-          )}
-        </div>
+            
+            {/* Title */}
+            <motion.h1 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-4xl mb-3"
+              style={{
+                fontFamily: VIBRANT_TYPOGRAPHY.fonts.display,
+                fontWeight: VIBRANT_TYPOGRAPHY.weights.black,
+                color: VIBRANT_COLORS.darkCarbon,
+              }}
+            >
+              Recover Your Wallet
+            </motion.h1>
+            
+            {/* Subtitle */}
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-lg"
+              style={{ color: '#777777' }}
+            >
+              Request help from your guardians to regain access
+            </motion.p>
+          </div>
 
-        {/* Actions */}
-        <div className="space-y-3">
-          <Button
-            onClick={handleInitiateRecovery}
-            loading={initiateRecoveryMutation.isPending}
-            fullWidth
-            size="lg"
+          {/* Warning Box */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4 }}
+            className="relative mb-8 p-6 rounded-2xl overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #FFF5E6 0%, #FFE0B2 100%)',
+              boxShadow: '0 0 0 2px rgba(255, 127, 0, 0.1)',
+            }}
           >
-            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Start Recovery Process
-          </Button>
-          
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="w-full text-center text-gray-600 hover:text-gray-800 font-medium py-3"
-          >
-            Cancel
-          </button>
-        </div>
+            {/* Pulsating Border Glow */}
+            <motion.div
+              animate={{
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute inset-0 rounded-2xl pointer-events-none"
+              style={{
+                boxShadow: '0 0 20px rgba(255, 127, 0, 0.3)',
+              }}
+            />
+            
+            <div className="relative">
+              {/* Header with Icon */}
+              <div className="flex items-center gap-3 mb-4">
+                {/* Warning Icon with Animation */}
+                <motion.div
+                  initial={{ rotate: 0 }}
+                  animate={{ rotate: [0, -10, 10, -10, 0] }}
+                  transition={{ duration: 0.5, delay: 0.6 }}
+                  className="flex-shrink-0"
+                >
+                  <AlertTriangle 
+                    className="w-8 h-8" 
+                    style={{ color: VIBRANT_COLORS.radiantOrange }}
+                    strokeWidth={2.5}
+                  />
+                </motion.div>
+                
+                <h3 
+                  className="text-xl font-bold"
+                  style={{ color: '#CC6600' }}
+                >
+                  Before You Continue
+                </h3>
+              </div>
+              
+              {/* Content */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-medium" style={{ color: '#CC6600' }}>•</span>
+                  <p className="text-base flex-1" style={{ color: '#CC6600', lineHeight: '1.6' }}>
+                    This will <span className="font-bold">notify all your guardians</span> via email
+                  </p>
+                </div>
+                
+                <div className="flex items-start gap-2">
+                  <span className="text-base font-medium mt-1" style={{ color: '#CC6600' }}>•</span>
+                  <p className="text-base flex-1 flex items-center flex-wrap gap-2" style={{ color: '#CC6600', lineHeight: '1.6' }}>
+                    You'll need your <span className="font-bold">master password</span> to complete recovery
+                    <Key className="w-4 h-4 inline-block" />
+                  </p>
+                </div>
+                
+                <div className="flex items-start gap-2">
+                  <span className="text-base font-medium mt-1" style={{ color: '#CC6600' }}>•</span>
+                  <p className="text-base flex-1 flex items-center flex-wrap gap-2" style={{ color: '#CC6600', lineHeight: '1.6' }}>
+                    Recovery expires after <span className="font-bold">24 hours</span>
+                    <Clock className="w-4 h-4 inline-block animate-pulse" />
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
 
-        {/* Help Text */}
-        <div className="mt-8 text-center">
-          <p className="text-xs text-gray-500">
-            Need help? Check our{' '}
-            <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
-              recovery guide
-            </a>
-          </p>
+          {/* Device Information Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mb-8 p-6 bg-white rounded-2xl"
+            style={{
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.04)',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <h3 
+              className="text-lg mb-4"
+              style={{
+                fontWeight: VIBRANT_TYPOGRAPHY.weights.semibold,
+                color: VIBRANT_COLORS.darkCarbon,
+              }}
+            >
+              Recovery will be initiated from:
+            </h3>
+            
+            <div className="space-y-4">
+              {/* Device */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Smartphone className="w-5 h-5" style={{ color: '#777777' }} />
+                  <span className="text-base" style={{ color: '#777777' }}>Device:</span>
+                </div>
+                <span className="text-base font-medium" style={{ color: VIBRANT_COLORS.darkCarbon }}>
+                  {navigator.userAgent.includes('Mobile') ? 'Mobile Browser' : 'Desktop Browser'}
+                </span>
+              </div>
+              
+              {/* Platform */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Globe className="w-5 h-5" style={{ color: '#777777' }} />
+                  <span className="text-base" style={{ color: '#777777' }}>Platform:</span>
+                </div>
+                <span className="text-base font-medium" style={{ color: VIBRANT_COLORS.darkCarbon }}>Web</span>
+              </div>
+              
+              {/* Browser */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Chrome className="w-5 h-5" style={{ color: '#777777' }} />
+                  <span className="text-base" style={{ color: '#777777' }}>Browser:</span>
+                </div>
+                <span className="text-base font-medium" style={{ color: VIBRANT_COLORS.darkCarbon }}>
+                  {navigator.userAgent.includes('Chrome') ? 'Chrome' : 
+                   navigator.userAgent.includes('Firefox') ? 'Firefox' : 
+                   navigator.userAgent.includes('Safari') ? 'Safari' : 'Other'}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Reason Input (Optional) */}
+          <motion.div 
+            className="mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
+            <button
+              onClick={() => setShowReasonInput(!showReasonInput)}
+              className="text-base font-medium flex items-center transition-all"
+              style={{ color: '#3A86FF' }}
+            >
+              {showReasonInput ? 'Hide' : 'Add'} recovery reason (optional)
+              <motion.div
+                animate={{ rotate: showReasonInput ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronDown className="w-5 h-5 ml-2" />
+              </motion.div>
+            </button>
+            
+            <AnimatePresence>
+              {showReasonInput && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mt-4 overflow-hidden"
+                >
+                  <textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="e.g., Lost access to phone, Forgot password, Device replacement..."
+                    className="w-full px-5 py-4 border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+                    style={{
+                      fontSize: '16px',
+                      backgroundColor: '#FAFBFC',
+                    }}
+                    rows={3}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Actions */}
+          <motion.div 
+            className="space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+          >
+            {/* Primary CTA Button */}
+            <motion.button
+              onClick={handleInitiateRecovery}
+              disabled={initiateRecoveryMutation.isPending}
+              className="relative w-full py-5 px-8 rounded-2xl font-bold text-lg text-white overflow-hidden group"
+              style={{
+                background: 'linear-gradient(135deg, #007BFF 0%, #5E00FF 100%)',
+                boxShadow: '0 10px 30px rgba(0, 123, 255, 0.3), 0 5px 15px rgba(94, 0, 255, 0.2)',
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {/* Animated Glow Effect */}
+              <motion.div
+                className="absolute inset-0"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0, 123, 255, 0.3) 0%, rgba(94, 0, 255, 0.3) 100%)',
+                }}
+                animate={{
+                  opacity: [0, 0.5, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              
+              <span className="relative flex items-center justify-center">
+                {initiateRecoveryMutation.isPending ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                  />
+                ) : (
+                  <>
+                    Start Recovery Process
+                    <motion.div
+                      className="ml-2"
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <ArrowRight className="w-5 h-5" />
+                    </motion.div>
+                  </>
+                )}
+              </span>
+            </motion.button>
+            
+            {/* Cancel Link */}
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="w-full text-center font-medium py-3 transition-all hover:underline"
+              style={{ color: '#777777' }}
+            >
+              Cancel
+            </button>
+          </motion.div>
+
+          {/* Help Text */}
+          <motion.div 
+            className="mt-10 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
+            <p className="text-sm text-gray-500">
+              Need help? Check our{' '}
+              <a 
+                href="#" 
+                className="font-medium transition-colors hover:underline"
+                style={{ color: VIBRANT_COLORS.electricBlue }}
+              >
+                recovery guide
+              </a>
+            </p>
+          </motion.div>
         </div>
       </motion.div>
     </div>
